@@ -66,7 +66,7 @@ def test_human_like_web_usage(tmp_path, served, monkeypatch):
     eng = sess.engine
     (sess.workspace.root / "index.html").write_text("<html></html>")
     eng.state.spec = "# User journeys\n1. Sign up with email\n2. Delete my account\n"
-    gate = next(g for g in eng.extra_gates if True)(eng)
+    gate = next(r for r in (g(eng) for g in eng.extra_gates) if r.name.startswith("user journeys"))
     assert not gate.passed and "Delete my account" in gate.detail
     sess.close()
 
