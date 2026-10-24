@@ -25,7 +25,28 @@ def _backend(kind: str, evidence, persona, target: str):
     if kind == "vm":
         from .vm import VmScreen
         return VmScreen(evidence, persona)
-    raise ToolError("bad_kind", f"Unknown screen kind {kind}.", "Use web, android, desktop or vm.")
+    if kind == "ios":
+        from .appium import AppiumScreen
+        return AppiumScreen(evidence, persona)
+    raise ToolError("bad_kind", f"Unknown screen kind {kind}.", "Use web, android, ios, desktop or vm.")
+
+
+def _tap_xy(scr, x: int, y: int):
+    if hasattr(scr, "click_xy"):
+        scr.click_xy(int(x), int(y))
+    elif hasattr(scr, "_page") and scr._page is not None:
+        scr._page.mouse.click(int(x), int(y))
+    else:
+        from .base import Element
+        scr.elements.append(Element(9999, "point", "", int(x), int(y), 2, 2))
+        scr.click(9999)
+    return scr.view()
+
+
+def _device(scr, action: str) -> str:
+    if not hasattr(scr, "device"):
+        raise ToolError("unsupported", "Device actions are available on Android screens.")
+    return scr.device(action)
 
 
 @register
@@ -46,6 +67,11 @@ def install(session) -> None:
     def screen_open(target: str, kind: str = "web", persona: str = "first_time") -> ToolResult:
         if persona not in PERSONAS:
             raise ToolError("bad_persona", f"Unknown persona {persona}.", f"Use one of: {', '.join(PERSONAS)}")
+        if kind == "desktop" and session.engine is not None:
+            ok, why = session.engine.approver.approve("tool", f"Use your real desktop: control mouse and keyboard in "
+                                                               f"the window '{target}'")
+            if not ok:
+                raise ToolError("denied", "The user did not allow desktop control." + (f" {why}" if why else ""))
         if state["screen"] is not None:
             state["screen"].close()
         evidence = root / ".yw" / "evidence" / f"{kind}-{persona}"
@@ -105,9 +131,10 @@ def install(session) -> None:
 
     tools = [
         Tool("screen_open", "Open an app on a screen and see it. kind: web (URL), android (APK path or package), "
-             "desktop (window title), vm (ISO/disk image). persona: " + ", ".join(
+             "ios (bundle id or .app; needs Appium on a Mac), desktop (window title), vm (ISO/disk image). "
+             "persona: " + ", ".join(
                  f"{k} ({p.title_tr})" for k, p in PERSONAS.items()),
-             obj({"target": S, "kind": {"type": "string", "enum": ["web", "android", "desktop", "vm"]},
+             obj({"target": S, "kind": {"type": "string", "enum": ["web", "android", "ios", "desktop", "vm"]},
                   "persona": S}, ["target"]), screen_open, "exec", "operator"),
         Tool("screen_view", "Look at the screen: numbered elements, visible text, console errors, screenshot.",
              obj({}), screen_view, SAFE, "operator"),
@@ -140,6 +167,12 @@ def install(session) -> None:
         Tool("journey_export", "Turn the actions done on this screen into an automated regression test.",
              obj({"name": S}, ["name"]), journey_export, "write", "operator"),
         Tool("screen_close", "Close the screen (saves the video).", obj({}), screen_close, SAFE, "operator"),
+        Tool("tap_xy", "Click/tap a point by coordinates (for screens without element numbers, e.g. a VM).",
+             obj({"x": INT, "y": INT}, ["x", "y"]), lambda x, y: as_result("tap_xy", _tap_xy(screen(), x, y)),
+             "exec", "operator"),
+        Tool("device", "Change the device like a user would (Android): rotate, portrait, dark_mode, light_mode, "
+             "offline, online, home.", obj({"action": S}, ["action"]),
+             lambda action: _device(screen(), action), "exec", "operator"),
     ]
     for t in tools:
         reg.register(t)
