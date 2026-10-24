@@ -81,12 +81,13 @@ def build_session(project: str | Path, cfg: Config | None = None, approver: Appr
         install_all(sess)
     if with_engine:
         provider_for, profile_for = provider_factory(cfg)
+        router = None
         if cfg.router:
             from .models.router import Router
-            router = Router(cfg, provider_for, profile_for)
-            provider_for, profile_for = router.provider_for, router.profile_for
+            router = Router(cfg)
         from .skills import skills_for
         sess.engine = Engine(ws, reg, provider_for, profile_for, sandbox=sb, approver=approver or Approver(),
+                             router=router, parallel=getattr(cfg, "parallel", 1),
                              autonomy=cfg.autonomy, quality=cfg.quality, lang=cfg.lang, budget_usd=cfg.budget_usd,
                              max_minutes=cfg.max_minutes, on_event=on_event,
                              skills_for=lambda role, text: skills_for(role, text, cfg.lang, ws.root,

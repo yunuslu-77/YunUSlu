@@ -16,6 +16,7 @@ def scripted_factory(scripts):
         provs = {r: ScriptedProvider(list(s)) for r, s in scripts.items()}
         sess.engine.provider_for = lambda role: provs.setdefault(role, ScriptedProvider([]))
         sess.engine.profile_for = lambda role: None
+        sess.engine.router = None
         return sess
     return factory
 

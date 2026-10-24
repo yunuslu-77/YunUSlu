@@ -13,6 +13,16 @@ from ..tools.registry import ToolRegistry, ToolResult
 NATIVE, TEXT = "native", "text"
 
 
+def format_tools(registry: ToolRegistry, provider) -> list:
+    """Tool definitions in the format of this provider's API."""
+    name = getattr(provider, "name", "")
+    if name == "claude":
+        return registry.to_anthropic()
+    if name == "gemini":
+        return registry.to_gemini()
+    return registry.to_openai()
+
+
 @dataclass
 class LoopEvent:
     kind: str  # assistant | tool_call | tool_result | info | error | done
@@ -57,13 +67,8 @@ class AgentLoop:
     def _chat(self, messages: list[Message]) -> ChatResponse:
         tools = None
         if self.mode == NATIVE:
-            p = getattr(self.provider, "name", "")
-            if p == "claude":
-                tools = self.registry.to_anthropic()
-            elif p == "gemini":
-                tools = self.registry.to_gemini()
-            else:
-                tools = self.registry.to_openai()
+            tools = self.registry if getattr(self.provider, "accepts_registry", False) else \
+                format_tools(self.registry, self.provider)
         delay = 3.0
         for attempt in range(self.retries + 1):
             try:

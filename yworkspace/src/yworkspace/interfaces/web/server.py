@@ -133,6 +133,12 @@ class Runner:
             self.session.engine.stop()
 
 
+def _savings(st) -> float:
+    from ...models.profiles import get_profile
+    from ...models.router import savings
+    return round(savings(st.cost_by_model, get_profile("claude-opus")), 4)
+
+
 def _jsonable(d: dict) -> dict:
     try:
         json.dumps(d)
@@ -231,6 +237,7 @@ def create_app(cfg: Config | None = None, token: str | None = None, session_fact
         return {"goal": st.goal, "spec": st.spec, "phase": st.phase, "summary": st.summary(),
                 "tasks": [asdict(t) for t in st.tasks], "progress": st.progress(60), "notes": st.notes(),
                 "cost_usd": st.cost_usd, "tokens_in": st.tokens_in, "tokens_out": st.tokens_out,
+                "cost_by_model": st.cost_by_model, "saved_usd": _savings(st),
                 "journeys": json.loads(journeys.read_text("utf-8")) if journeys.exists() else []}
 
     @app.get("/api/projects/{name}/files", dependencies=[Depends(auth)])

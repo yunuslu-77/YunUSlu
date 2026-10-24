@@ -96,7 +96,9 @@ class PluginAPI:
 
     def add_skills(self, folder: str | Path) -> None:
         from .. import skills
-        skills.EXTRA_DIRS.append(Path(self.meta.path) / folder)
+        d = Path(self.meta.path) / folder
+        if d not in skills.EXTRA_DIRS:
+            skills.EXTRA_DIRS.append(d)
 
     def add_app_profile(self, path: str | Path) -> None:
         from ..bridge import desktop
@@ -156,7 +158,9 @@ def load_into(session, meta: PluginMeta) -> list[str]:
         session.registry.register(_declarative_tool(meta, spec, session))
     if meta.skills_dir:
         from .. import skills
-        skills.EXTRA_DIRS.append(meta.path / meta.skills_dir)
+        d = meta.path / meta.skills_dir
+        if d not in skills.EXTRA_DIRS:
+            skills.EXTRA_DIRS.append(d)
     if meta.entry:
         spec = importlib.util.spec_from_file_location(f"yw_plugin_{meta.name.replace('-', '_')}", meta.path / meta.entry)
         mod = importlib.util.module_from_spec(spec)

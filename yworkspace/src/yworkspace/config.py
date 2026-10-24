@@ -27,6 +27,8 @@ class Config:
     role_models: dict[str, str] = field(default_factory=dict)  # role -> model preset
     model_overrides: dict[str, dict] = field(default_factory=dict)
     router: bool = True
+    local_only: bool = False  # never send code to cloud models
+    parallel: int = 1  # independent task branches worked on at the same time
     telemetry: bool = False  # never sends anything unless the user turns it on
 
     @classmethod

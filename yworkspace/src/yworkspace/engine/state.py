@@ -44,6 +44,8 @@ class ProjectState:
     tokens_out: int = 0
     started: float = field(default_factory=time.time)
     review_approved: bool = False
+    cost_by_model: dict = field(default_factory=dict)  # preset -> {"in", "out", "usd"}
+    start_commit: str = ""  # git commit when the run started (finds every changed file, also from branches)
 
     @property
     def dir(self) -> Path:

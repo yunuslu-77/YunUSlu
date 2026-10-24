@@ -8,6 +8,8 @@ from yworkspace.sdk import loader
 
 def test_scaffold_install_and_use(tmp_path, monkeypatch):
     monkeypatch.setenv("YW_HOME", str(tmp_path / "home"))
+    from yworkspace import skills
+    monkeypatch.setattr(skills, "EXTRA_DIRS", [])
     src = loader.scaffold(tmp_path, "demo")
     (src / "skills" / "custom" / "demo-skill").mkdir(parents=True)
     (src / "skills" / "custom" / "demo-skill" / "skill.yaml").write_text(

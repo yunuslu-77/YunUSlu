@@ -84,6 +84,8 @@ class Engine:
     skills_for: Callable[[str, str], str] = lambda role, text: ""
     on_event: Callable[[LoopEvent], None] | None = None
     git: bool = True
+    router: object | None = None  # models.router.Router; chooses a model per role and task
+    parallel: int = 1  # how many independent task branches may run at the same time
 
     def __post_init__(self) -> None:
         self.root = self.workspace.root
@@ -208,14 +210,21 @@ class Engine:
         if self.on_event:
             self.on_event(LoopEvent(kind, text, data))
 
-    def _account(self, role: str, usage: Usage) -> None:
+    def _account(self, role: str, usage: Usage, prof: ModelProfile | None = None) -> None:
         self.usage.add(usage)
-        prof = self.profile_for(role)
+        prof = prof if prof is not None else self.profile_for(role)
         st = self.state
         st.tokens_in += usage.input_tokens
         st.tokens_out += usage.output_tokens
+        usd = 0.0
         if prof and prof.price_in is not None and prof.price_out is not None:
-            st.cost_usd += (usage.input_tokens * prof.price_in + usage.output_tokens * prof.price_out) / 1e6
+            usd = (usage.input_tokens * prof.price_in + usage.output_tokens * prof.price_out) / 1e6
+            st.cost_usd += usd
+        key = prof.id if prof else "unknown"
+        row = st.cost_by_model.setdefault(key, {"in": 0, "out": 0, "usd": 0.0})
+        row["in"] += usage.input_tokens
+        row["out"] += usage.output_tokens
+        row["usd"] += usd
         st.save()
 
     def over_limits(self) -> str | None:
@@ -235,7 +244,31 @@ class Engine:
         for ch in self.workspace.history(100_000):
             if ch.time >= self.state.started:
                 files.add(ch.moved_to or ch.path)
+        if self.state.start_commit and (self.root / ".git").exists():
+            try:
+                r = subprocess.run(["git", "diff", "--name-only", self.state.start_commit], cwd=self.root,
+                                   capture_output=True, text=True, timeout=60)
+                files.update(x for x in r.stdout.split("\n") if x)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
         return sorted(f for f in files if (self.root / f).exists())
+
+    def _sandbox_for(self, path: Path):
+        sb = self.sandbox
+        if sb is None:
+            return None
+        if hasattr(sb, "image"):
+            return type(sb)(path, image=sb.image, network=sb.network)
+        return type(sb)(path)
+
+    def _remember_start_commit(self) -> None:
+        if self.state.start_commit or not (self.root / ".git").exists():
+            return
+        self._git_commit("yWorkspace: start")
+        r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True, text=True)
+        if r.returncode == 0:
+            self.state.start_commit = r.stdout.strip()
+            self.state.save()
 
     def _brief(self, extra: str = "") -> str:
         st = self.state
@@ -279,8 +312,15 @@ class Engine:
     def run_role(self, role_name: str, assignment: str, max_steps: int | None = None,
                  on_idle: Callable[[list[Message]], str | None] | None = None) -> str:
         role: Role = ROLES[role_name]
-        provider = self.provider_for(role_name)
-        prof = self.profile_for(role_name)
+        if self.router is not None:
+            task = self.state.task(self._current_task) if self._current_task else None
+            choice = self.router.choose(role_name, task, self.quality)
+            provider = self.router.provider_for_choice(choice, role_name)
+            prof = self.router._profile(choice.preset)
+            self._emit("info", f"model:{choice.preset} ({choice.reason})", role=role_name, model=choice.preset)
+        else:
+            provider = self.provider_for(role_name)
+            prof = self.profile_for(role_name)
         reg = self.registry if role.tools is None else self.registry.subset(names=role.tools + ["plan_show"])
         if role.tools is None:
             reg = self.registry.subset(names=[n for n in self.registry.names() if n != "review_verdict"])
@@ -299,7 +339,7 @@ class Engine:
             loop.mode = "text"
         self._emit("info", f"role:{role_name}", role=role_name)
         res = loop.run(msgs)
-        self._account(role_name, res.usage)
+        self._account(role_name, res.usage, prof)
         return res.final_text
 
     # ========================================================== phases
@@ -337,6 +377,10 @@ class Engine:
     def _git_commit(self, message: str) -> None:
         if not self.git or not (self.root / ".git").exists():
             return
+        exclude = self.root / ".git" / "info" / "exclude"
+        if exclude.parent.is_dir() and ".yw/" not in (exclude.read_text("utf-8") if exclude.exists() else ""):
+            with exclude.open("a", encoding="utf-8") as f:
+                f.write("\n.yw/\n")
         try:
             subprocess.run(["git", "add", "-A"], cwd=self.root, capture_output=True, timeout=60)
             subprocess.run(["git", "-c", "user.name=yWorkspace", "-c", "user.email=yworkspace@localhost",
@@ -463,9 +507,16 @@ class Engine:
             self.understand()
             self.plan()
             st.phase = "build"
+            self._remember_start_commit()
             while (task := st.next_task()) is not None:
                 if (limit := self.over_limits()):
                     break
+                if self.parallel > 1:
+                    from .parallel import ParallelRunner, parallel_groups
+                    groups = parallel_groups(st, self.max_task_attempts)
+                    if groups:
+                        ParallelRunner(self, self._sandbox_for, self.parallel).run(groups)
+                        continue
                 if task.attempts >= self.max_task_attempts:
                     task.status = BLOCKED
                     task.notes.append(f"Gave up after {task.attempts} attempts.")

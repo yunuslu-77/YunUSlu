@@ -135,7 +135,10 @@ async function refreshState() {
   $("#phase").textContent = (PH[state.lang] && PH[state.lang][s.phase]) || s.phase;
   const nDone = s.tasks.filter((x) => x.status === "done").length;
   $("#summary").textContent = state.lang === "tr" ? `${nDone}/${s.tasks.length} görev tamam` : `${nDone}/${s.tasks.length} tasks done`;
-  $("#cost").textContent = `${(s.tokens_in + s.tokens_out).toLocaleString()} token · $${s.cost_usd.toFixed(3)}`;
+  const models = Object.keys(s.cost_by_model || {}).join(", ");
+  $("#cost").textContent = `${(s.tokens_in + s.tokens_out).toLocaleString()} token · $${s.cost_usd.toFixed(3)}` +
+    (s.saved_usd > 0 ? ` · ${state.lang === "tr" ? "tasarruf" : "saved"} $${s.saved_usd.toFixed(2)}` : "");
+  $("#cost").title = models;
   const done = s.tasks.filter((x) => x.status === "done").length;
   $("#barFill").style.width = s.tasks.length ? `${(100 * done) / s.tasks.length}%` : "0";
   const ul = $("#tasks"); ul.innerHTML = "";
