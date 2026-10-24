@@ -26,7 +26,7 @@ def test_text_session_idle_nudge(tmp_path):
 def test_split_long_messages(tmp_path):
     ws = Workspace(tmp_path / "p")
     ts = TextSession(build_registry(ws), max_message_chars=1000)
-    parts = ts.split("\n".join("line %d %s" % (i, "x" * 50) for i in range(100)))
+    parts = ts.split("\n".join(f"line {i} {'x' * 50}" for i in range(100)))
     assert len(parts) > 3 and all(len(p) <= 1100 for p in parts)
     assert parts[0].startswith("[Part 1/") and "last part" in parts[-1]
 
