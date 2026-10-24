@@ -19,7 +19,7 @@ yWorkspace bu üçünü birden çözer:
 
 | Sorun | Çözüm |
 |---|---|
-| Ortam eksik | Dosya, terminal, test, git, veritabanı, tarayıcı, yayına alma ve derleme (APK, EXE, IPA, ISO...) araçları olan, Docker içinde güvenli bir **tam geliştirme ortamı** |
+| Ortam eksik | Dosya, terminal, test, git, veritabanı, tarayıcı, yayına alma, derleme (APK, EXE, IPA, ISO...) ve medya (görsel, video, ses...) araçları olan, Docker içinde güvenli bir **tam geliştirme ortamı** |
 | Acele etme | İş gerçekten bitene kadar modeli çalıştıran **Derin Çalışma Motoru**. "Bitti" demesi, yazılım tarafından kontrol edilen kapılara bağlı |
 | Yöntem bilmeme | Her alanda derin, her yapay zekâya özel ayarlanmış, Türkçe ve İngilizce **skill kütüphanesi** |
 
@@ -49,7 +49,7 @@ yWorkspace bu üçünü birden çözer:
 | Skill kapsamı | **Her alan.** Yazılım ve SaaS çekirdektir, pazarlama, iş, belge, eğitim ve araştırma da dahil |
 | Skill dili | **Türkçe + İngilizce**, her yapay zekâ için ayrı ayar |
 | Geliştirme yeri | Bu depoda, `yworkspace/` klasörü |
-| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 16 |
+| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 17 |
 
 ---
 
@@ -108,10 +108,11 @@ Amaç: Yazılım bilmeyen birinin bile "İleri, İleri" diyerek yWorkspace'i ça
    - **Yerel modeller:** Ollama'yı kurar. Donanıma göre model önerir (ör. 8 GB RAM için küçük, güçlü GPU için büyük model) ve indirir.
    - **Ücretsiz başlangıç yolu:** Hiç parası olmayan kullanıcı için ücretsiz katmanları ya da yerel modeli önerir.
 5. **Bağlantı yolları (isteğe bağlı):** Kullanıcı Claude Desktop gibi MCP destekli uygulamalar kullanıyorsa MCP kaydını yapar. Tarayıcı eklentisini kurdurur. Masaüstü Köprüsü için gerekli işletim sistemi izinlerini (macOS Erişilebilirlik gibi) adım adım verdirir ve bir deneme mesajıyla test eder.
-6. **Çalışma klasörü:** Projelerin duracağı klasörü seçtirir.
-7. **Varsayılan ayarlar:** Özerklik modu, kalite modu, bütçe sınırı.
-8. **Deneme projesi:** Küçük bir örnek projeyi uçtan uca yaptırır. Böylece kurulumun gerçekten çalıştığı kanıtlanır.
-9. **Bitiş:** Masaüstü kısayolu, otomatik başlatma (isteğe bağlı), tarayıcıda arayüzü açar.
+6. **Medya paketi (isteğe bağlı):** Ekran kartına göre görsel, video, ses ve müzik modellerini önerir ve indirir (bkz. bölüm 13.5).
+7. **Çalışma klasörü:** Projelerin duracağı klasörü seçtirir.
+8. **Varsayılan ayarlar:** Özerklik modu, kalite modu, bütçe sınırı.
+9. **Deneme projesi:** Küçük bir örnek projeyi uçtan uca yaptırır. Böylece kurulumun gerçekten çalıştığı kanıtlanır.
+10. **Bitiş:** Masaüstü kısayolu, otomatik başlatma (isteğe bağlı), tarayıcıda arayüzü açar.
 
 **Sonradan:** Güncelleme kontrolü, "Sistem Sağlığı" ekranı (Docker çalışıyor mu, anahtarlar geçerli mi, disk yeterli mi) ve onarım sihirbazı.
 
@@ -181,6 +182,20 @@ Tüm araçlar **tek bir yerde** tanımlanır (JSON şeması + Python fonksiyonu)
 | `record` | Video ve adım kaydı |
 
 Ayrıntılar: bölüm 12.
+
+### 5.7 Medya araçları
+
+| Araç | Görev |
+|---|---|
+| `image_generate` / `image_edit` | Görsel üretme ve düzenleme |
+| `image_understand` | Görseli açıklama, metin okuma (OCR) |
+| `video_generate` / `video_edit` / `video_understand` | Video üretme, düzenleme ve anlama |
+| `speak` / `transcribe` | Metinden konuşma, konuşmadan metne |
+| `music_generate` / `sound_effect` | Müzik ve ses efekti |
+| `model_3d` | 3B model üretme |
+| `media_inspect` | Medya dosyasının teknik kontrolü (süre, çözünürlük, siyah kare, ses senkronu) |
+
+Ayrıntılar: bölüm 13.
 | `docs_fetch` / `web_search` | Kütüphane belgelerini okumak (isteğe bağlı, kullanıcı açar) |
 
 ### 5.5 Motor araçları
@@ -334,6 +349,7 @@ Aynı model farklı rollerde, **her rol temiz bir bağlamla** çalıştırılır
 | **Test uzmanı** | Testleri yazar ve çalıştırır, kenar durumları arar |
 | **İnceleyici** | Değişikliği kontrol listesiyle inceler (doğruluk, güvenlik, okunabilirlik) |
 | **Hata ayıklayıcı** | Başarısız testin kök nedenini bulur |
+| **Yönetmen** | Medya işlerinde senaryo, sahne planı ve kalite kontrolünü yönetir (bkz. bölüm 13) |
 | **Test kullanıcısı** | Uygulamayı farklı persona'larla gerçek bir insan gibi kullanır, hata ve kullanılabilirlik raporu yazar |
 
 Kullanıcı isterse rollere farklı modeller atayabilir (ör. geliştirici DeepSeek, inceleyici Claude).
@@ -691,7 +707,109 @@ SPEC.md'deki her önemli iş bir **kullanıcı yolculuğu** olarak yazılır. Ö
 
 ---
 
-## 13. Web Arayüzü
+## 13. Medya Stüdyosu
+
+Sadece metin yazabilen bir yapay zekâ bile (ör. DeepSeek) yWorkspace ile **görsel, video, ses, müzik ve 3B model üretebilir, ayrıca görselleri ve videoları anlayabilir.** Yapay zekâ yönetmen olur: planı yapar, araçları çağırır, sonucu kontrol eder ve beğenmezse yeniden yaptırır. Üretimi araçlar yapar.
+
+### 13.1 Üç üretim yolu
+
+| Yol | Nasıl çalışır | Artısı | Ne gerekir |
+|---|---|---|---|
+| **1. Kodla üretim** | Yapay zekâ kod yazar, kod medyayı üretir: SVG/HTML grafikler, grafikler ve diyagramlar, animasyonlar, açıklama videoları | Ekran kartı gerekmez, her bilgisayarda çalışır, sonuç kusursuz ve düzenlenebilir. **Metin modellerinin en güçlü olduğu yol** | Sadece Docker |
+| **2. Yerel açık modeller** | Bilgisayarda çalışan görsel, video, ses ve müzik modelleri | Ücretsiz, internetsiz, gizli | Ekran kartı (GPU). Güçsüz bilgisayarda küçük modeller ya da 1. yol |
+| **3. Dış API'ler** | Kullanıcının kendi anahtarıyla görsel, video ve ses API'leri | En yüksek kalite, güçlü bilgisayar gerekmez | API anahtarı, kullanım ücreti |
+
+Motor, kullanıcının donanımına, bütçesine ve isteğe göre en uygun yolu seçer. Kullanıcı bunu ayarlardan değiştirebilir.
+
+### 13.2 Yetenekler
+
+**🖼️ Görsel**
+- Metinden görsel üretme, görsel düzenleme (bir bölümü değiştirme, genişletme), stil aktarımı
+- Arka plan silme, kalite ve çözünürlük artırma, yüz düzeltme
+- **Logo, ikon ve uygulama görselleri:** Derleme Fabrikası için tüm boyutlarda uygulama ikonları, mağaza ekran görüntüleri ve tanıtım görselleri
+- Kodla: SVG illüstrasyonlar, sosyal medya şablonları, infografikler, grafikler (matplotlib, Plotly), diyagramlar (Mermaid, Graphviz)
+- Araçlar: ComfyUI ve diffusers ile yerel modeller (Stable Diffusion, FLUX ailesi ve benzerleri), Real-ESRGAN, rembg, Pillow, ImageMagick
+
+**🎬 Video**
+- **Kodla video (her bilgisayarda):** Açıklama videosu, ürün tanıtımı, slayt videosu, altyazılı kısa video (Reels/Shorts/TikTok), animasyonlu grafikler, matematik ve eğitim animasyonları. Araçlar: FFmpeg, MoviePy, Remotion, Motion Canvas, Manim
+- **Model ile video:** Metinden video, görselden video. Yerel açık video modelleri (Wan, HunyuanVideo, LTX-Video, CogVideoX gibi) ya da dış API'ler
+- Video düzenleme: kesme, birleştirme, geçişler, renk, hız, logo ekleme, format ve boyut dönüştürme
+- Otomatik altyazı, çeviri altyazı ve seslendirme (dublaj)
+- **Uygulama tanıtım videosu:** İnsan Gibi Kullanım kayıtlarından otomatik tanıtım videosu
+
+**🔊 Ses**
+- Metinden konuşma (Türkçe dahil çok dilli, farklı sesler). Araçlar: Piper, Kokoro ve benzerleri
+- Konuşmadan metne (Whisper): toplantı notu, altyazı, sesli komut
+- Ses temizleme, gürültü azaltma, ses seviyesi dengeleme
+- Ses efektleri
+- **Ses klonlama yalnızca kullanıcının kendi sesiyle ya da sesin sahibinin açık izniyle**
+
+**🎵 Müzik**
+- Metinden müzik, fon müziği, jingle
+- Kodla müzik: MIDI besteleme ve seslendirme
+- Yerel modeller ya da dış API'ler
+
+**🧊 3B**
+- Görselden ya da metinden 3B model (GLB, OBJ, STL)
+- Kodla 3B: Blender (komut satırı), OpenSCAD (3B yazıcı parçaları), Three.js sahneleri
+
+**👁️ Anlama (görsel anlayamayan modeller için)**
+- Görsel açıklama, görselden metin okuma (OCR: Tesseract, PaddleOCR)
+- Video anlama: kareler örneklenir, açıklanır ve ses metne çevrilir, hepsi metin olarak modele verilir
+- Tablo, grafik ve belge okuma
+- Yerel görsel modeller (Qwen-VL, LLaVA, Florence gibi) ya da dış API'ler
+- İnsan Gibi Kullanım'daki (bölüm 12.2) ekran yorumlama da bu altyapıyı kullanır
+
+### 13.3 Üretim hatları
+
+Büyük işler, Derin Çalışma Motoru ile adım adım yapılır. Örnek: **"60 saniyelik ürün tanıtım videosu"**
+
+```
+1. Senaryo        → yapay zekâ metni yazar
+2. Sahne planı    → her sahne: görüntü, metin, süre
+3. Görseller      → üretilir ya da kodla çizilir
+4. Seslendirme    → metinden konuşma
+5. Müzik          → fon müziği
+6. Kurgu          → FFmpeg/Remotion ile birleştirme, geçişler
+7. Altyazı        → Whisper ile otomatik
+8. Kontrol        → kareler ve ses incelenir (bkz. 13.4)
+9. Düzeltme       → sorunlu sahne yeniden üretilir
+10. Dışa aktarma  → YouTube, Reels, TikTok boyutlarında
+```
+
+Hazır hatlar: tanıtım videosu, eğitim videosu, podcast, sosyal medya paketi, uygulama mağaza görselleri, logo ve marka kimliği, sesli kitap, sunum videosu.
+
+### 13.4 Medya için bitti kapıları
+
+Model "video hazır" diyemez, kontrol yazılım tarafından yapılır:
+- Dosya açılıyor, süre, çözünürlük ve biçim istenen gibi
+- Siyah ya da donmuş kare yok, ses ile görüntü senkron
+- Seslendirme metni senaryoyla eşleşiyor (konuşmadan metne çevrilip karşılaştırılır)
+- Görsellerde istenen öğeler var (görsel anlama ile kontrol edilir)
+- Altyazılar okunuyor ve doğru zamanda
+- Kullanıcıya önizleme ve karşılaştırmalı seçenekler sunuldu
+
+### 13.5 Donanım ve kurulum
+
+- Kurulum sihirbazı ekran kartını tanır (NVIDIA, AMD, Apple Silicon, yok) ve buna uygun bir **medya paketi** önerir:
+  - **Ekran kartı yok:** Kodla üretim + küçük ses ve anlama modelleri + isteğe bağlı dış API'ler
+  - **Orta ekran kartı:** + görsel üretimi ve hafif video modelleri
+  - **Güçlü ekran kartı:** + yüksek kaliteli video, müzik ve 3B modelleri
+- Modeller ilk kullanımda indirilir, disk kullanımı gösterilir, istenmeyen model silinebilir.
+- Windows ve Linux'ta NVIDIA ekran kartları Docker içinden kullanılır. macOS'ta Docker ekran kartına erişemediği için medya modelleri Docker dışında, yWorkspace'in yönettiği ayrı bir ortamda çalışır.
+
+### 13.6 Etik, güvenlik ve lisanslar
+
+- **Gerçek kişilerin** izinsiz sahte görüntü, video ya da sesi (deepfake) üretilmez.
+- Ses klonlama yalnızca kendi sesin ya da açık izinle yapılır.
+- Yasa dışı ve zararlı içerik üretimi engellenir.
+- Üretilen medyaya, yapay zekâ ile üretildiğini belirten bilgi (meta veri / C2PA) eklenir.
+- **Model lisansları takip edilir.** Birçok açık modelin ağırlıkları yalnızca ticari olmayan kullanıma izin verir. yWorkspace, kullanıcı ticari bir proje yapıyorsa uygun olmayan modelleri uyarıyla işaretler ve ticari kullanıma izin veren alternatifi önerir.
+- Telif hakkıyla korunan karakterler, markalar ve müzikler konusunda kullanıcı uyarılır.
+
+---
+
+## 14. Web Arayüzü
 
 Yerel olarak çalışır (`http://localhost`), tarayıcıda açılır. İki görünümü vardır:
 
@@ -712,7 +830,7 @@ Yerel olarak çalışır (`http://localhost`), tarayıcıda açılır. İki gör
 
 ---
 
-## 14. Android uzaktan kumanda
+## 15. Android uzaktan kumanda
 
 Bulut olmadığı için Android uygulaması, **kullanıcının kendi bilgisayarındaki** yWorkspace'e bağlanır:
 - Aynı Wi-Fi ağında: QR kod ile eşleşme.
@@ -722,7 +840,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 15. Güvenlik
+## 16. Güvenlik
 
 - **Docker sandbox:** Tüm komutlar konteynerde çalışır. Konteyner sadece proje klasörünü görür.
 - **Çalışma alanı sınırı:** Dosya araçları proje klasörünün dışına çıkamaz (`../` ve sembolik bağlantılar engellenir).
@@ -735,7 +853,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 16. Lisans — ✅ Karar verildi
+## 17. Lisans — ✅ Karar verildi
 
 Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
@@ -749,7 +867,7 @@ Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
 ---
 
-## 17. Ölçüm: yWorkspace Bench
+## 18. Ölçüm: yWorkspace Bench
 
 "Zayıf modellerden vay dedirttik" iddiasını kanıtlamak için ölçmemiz gerekiyor:
 
@@ -760,7 +878,7 @@ Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
 ---
 
-## 18. Depo yapısı
+## 19. Depo yapısı
 
 ```
 yworkspace/
@@ -776,6 +894,7 @@ yworkspace/
 ├── deploy/                 # yayına alma hedefleri
 ├── factory/                # Derleme Fabrikası: derleyici imajları, tarifler, imzalama
 ├── operator/               # İnsan Gibi Kullanım: ekran, emülatör ve sanal makine kontrolü
+├── studio/                 # Medya Stüdyosu: görsel, video, ses, müzik, 3B, anlama
 ├── web/                    # web arayüzü (backend API + frontend)
 ├── installer/              # kurulum sihirbazı (Windows/macOS/Linux)
 ├── skills/                 # skill kütüphanesi
@@ -788,7 +907,7 @@ yworkspace/
 
 ---
 
-## 19. Yol haritası
+## 20. Yol haritası
 
 Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 
@@ -808,13 +927,15 @@ Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 | 11 | **Derleme Fabrikası v1:** APK/AAB, EXE/MSI/kurulum sihirbazı, Linux paketleri, Docker imajları, web/PWA, imzalama yöneticisi | Aynı uygulamadan APK, EXE ve DEB üretilip emülatörde, Wine'da ve temiz konteynerde açıldığı kanıtlanıyor |
 | 12 | **Derleme Fabrikası v2:** IPA ve macOS (Mac derleme makinesi), ISO/IMG/sanal makine imajları, eklentiler, kütüphane paketleri, oyun, gömülü sistemler, TV/saat, mağaza yüklemeleri | Bir özel Linux ISO'su QEMU'da açılıyor, bir IPA Mac üzerinden derleniyor |
 | 13 | **İnsan Gibi Kullanım:** web, Android, Linux ve Windows uygulamaları, ISO kurulumları, iOS ve macOS (Mac ile); persona'lar, kullanıcı yolculukları, raporlar, otomatik teste dönüştürme | Yapay zekâ bir SaaS'a kayıt olup test ödemesi yapıyor, bir APK'yı emülatörde baştan sona kullanıyor ve bulduğu hatayı kendisi düzeltiyor |
-| 14 | **Bench yayını + diğer skill kategorileri** | Sonuç tablosu yayında |
-| 15 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
-| 16 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
+| 14 | **Medya Stüdyosu v1:** kodla üretim (grafik, diyagram, kodla video), metinden konuşma, konuşmadan metne, görsel anlama ve OCR, görsel üretimi, uygulama ikonları | DeepSeek (metin modeli) altyazılı ve seslendirmeli bir tanıtım videosu üretiyor ve bitti kapılarından geçiyor 🎯 |
+| 15 | **Medya Stüdyosu v2:** yerel video modelleri, müzik, 3B, dış API'ler, hazır üretim hatları, lisans takibi | Ekran kartı olan bir bilgisayarda metinden video ve müzikli bir sosyal medya paketi üretiliyor |
+| 16 | **Bench yayını + diğer skill kategorileri** | Sonuç tablosu yayında |
+| 17 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
+| 18 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
 
 ---
 
-## 20. Açık sorular
+## 21. Açık sorular
 
 1. **Test için API anahtarları:** Aşama 3'te DeepSeek ve Gemini için gerçek anahtarlar gerekecek.
 2. **Logo ve tasarım:** yWorkspace ikonu, diğer y-uygulamalarının mavi tasarım diliyle mi olsun?
