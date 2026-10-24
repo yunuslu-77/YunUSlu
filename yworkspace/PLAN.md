@@ -68,7 +68,7 @@ yWorkspace bu üçünü birden çözer:
 ┌──────────────────────────── MODEL KATMANI ───────────────────────────────┐
 │  Adaptörler: DeepSeek · Gemini · Claude · OpenAI · Ollama · Qwen ·        │
 │              Mistral · Grok · Kimi · OpenAI uyumlu her API                │
-│  Araç çağırma yolları: yerel araç çağrısı │ MCP │ metin protokolü        │
+│  Bağlantı yolları: API │ MCP │ Tarayıcı eklentisi │ Masaüstü Köprüsü    │
 └───────────────────────────────────┬──────────────────────────────────────┘
                                     │
 ┌───────────────────────────── ARAÇ KATMANI ───────────────────────────────┐
@@ -107,10 +107,11 @@ Amaç: Yazılım bilmeyen birinin bile "İleri, İleri" diyerek yWorkspace'i ça
    - **API modelleri:** Anahtar alınacak sayfaya yönlendirir (DeepSeek, Gemini, Claude, OpenAI...). Anahtarı test eder ve güvenli şekilde saklar (işletim sisteminin anahtar deposunda).
    - **Yerel modeller:** Ollama'yı kurar. Donanıma göre model önerir (ör. 8 GB RAM için küçük, güçlü GPU için büyük model) ve indirir.
    - **Ücretsiz başlangıç yolu:** Hiç parası olmayan kullanıcı için ücretsiz katmanları ya da yerel modeli önerir.
-5. **Çalışma klasörü:** Projelerin duracağı klasörü seçtirir.
-6. **Varsayılan ayarlar:** Özerklik modu, kalite modu, bütçe sınırı.
-7. **Deneme projesi:** Küçük bir örnek projeyi uçtan uca yaptırır. Böylece kurulumun gerçekten çalıştığı kanıtlanır.
-8. **Bitiş:** Masaüstü kısayolu, otomatik başlatma (isteğe bağlı), tarayıcıda arayüzü açar.
+5. **Bağlantı yolları (isteğe bağlı):** Kullanıcı Claude Desktop gibi MCP destekli uygulamalar kullanıyorsa MCP kaydını yapar. Tarayıcı eklentisini kurdurur. Masaüstü Köprüsü için gerekli işletim sistemi izinlerini (macOS Erişilebilirlik gibi) adım adım verdirir ve bir deneme mesajıyla test eder.
+6. **Çalışma klasörü:** Projelerin duracağı klasörü seçtirir.
+7. **Varsayılan ayarlar:** Özerklik modu, kalite modu, bütçe sınırı.
+8. **Deneme projesi:** Küçük bir örnek projeyi uçtan uca yaptırır. Böylece kurulumun gerçekten çalıştığı kanıtlanır.
+9. **Bitiş:** Masaüstü kısayolu, otomatik başlatma (isteğe bağlı), tarayıcıda arayüzü açar.
 
 **Sonradan:** Güncelleme kontrolü, "Sistem Sağlığı" ekranı (Docker çalışıyor mu, anahtarlar geçerli mi, disk yeterli mi) ve onarım sihirbazı.
 
@@ -179,13 +180,20 @@ Tüm araçlar **tek bir yerde** tanımlanır (JSON şeması + Python fonksiyonu)
 
 ## 6. Model katmanı
 
-### 6.1 Üç bağlantı yolu
+### 6.1 Dört bağlantı yolu
 
-| Yol | Hangi modeller | Nasıl |
+Hiçbir yapay zekâ dışarıda kalmaz. Her biri en az bir yolla bağlanır:
+
+| Yol | Hangi yapay zekâlar | Nasıl |
 |---|---|---|
-| **Yerel araç çağrısı** | API'si araç çağırmayı destekleyen her model (DeepSeek, Gemini, Claude, OpenAI, Qwen, Mistral, Grok, Kimi, çoğu Ollama modeli) | Araç tanımları modelin kendi formatına çevrilir, motor döngüyü yönetir |
-| **MCP sunucusu** | Claude Desktop, ChatGPT, Gemini CLI, Cursor, VS Code gibi MCP istemcileri | yWorkspace araçları MCP üzerinden sunulur. Böylece kullanıcı kendi alıştığı uygulamadan da yWorkspace'i kullanabilir |
-| **Metin protokolü** | Araç çağıramayan modeller, zayıf yerel modeller, web sohbetleri | Model özel bloklar yazar, yWorkspace bunları ayrıştırıp uygular (bkz. 6.3) |
+| **1. API** (en güçlüsü) | API'si olan her model: DeepSeek, Gemini, Claude, OpenAI, Qwen, Mistral, Grok, Kimi, Ollama ile yerel modeller, OpenAI uyumlu her API | Araç tanımları modelin kendi formatına çevrilir, motor döngüyü yönetir. Araç çağıramayan modellerde metin protokolüne geçilir |
+| **2. MCP** | MCP destekleyen uygulamalar: Claude Desktop, Cursor, VS Code, Windsurf, Gemini CLI, ChatGPT | yWorkspace araçları MCP üzerinden sunulur. ChatGPT yalnızca internetten erişilebilen sunuculara bağlandığı için sihirbaz bir tünel kurulumunda yardım eder |
+| **3. Tarayıcı eklentisi** | Web sohbetleri: DeepSeek, Gemini, ChatGPT, Claude ve diğerlerinin web sürümleri | Eklenti sohbet sayfasına metin protokolüyle mesaj yazar, cevabı okur, yWorkspace uygular (bkz. 6.3) |
+| **4. Masaüstü Köprüsü** | MCP desteği olmayan masaüstü uygulamaları (ör. DeepSeek ve Gemini uygulamaları) | Pano + Ctrl+V ile mesaj gönderir, cevabı kopyala butonundan alır (bkz. 6.4) |
+
+Ek olarak her durumda çalışan **elle mod** vardır: Kullanıcı cevabı yWorkspace'e yapıştırır, yWorkspace sonucu panoya kopyalar.
+
+> MCP desteği uygulamadan uygulamaya değişir ve zamanla güncellenir. Uygulama profilleri bu tabloya göre değil, güncel duruma göre tutulur.
 
 ### 6.2 Model profilleri
 
@@ -211,8 +219,50 @@ pytest -q
 ```
 
 - Ayrıştırıcı hataya toleranslıdır: Eksik kapanış ya da küçük biçim hataları düzeltilir, düzeltilemiyorsa modele net bir hata mesajı döner.
-- **Yarı otomatik kullanım:** Kullanıcı web sohbetindeki cevabı yWorkspace'e yapıştırır, sonuç panoya kopyalanır.
-- **Tarayıcı eklentisi (isteğe bağlı):** Web sohbetlerini otomatik bağlar. ⚠️ Bazı sitelerin kullanım koşulları otomasyonu yasaklayabilir. Bu yüzden ana yol API'dir, eklenti kullanıcının sorumluluğunda bir ek seçenektir.
+- Metin protokolünü tarayıcı eklentisi, Masaüstü Köprüsü ve elle mod ortak kullanır. Derin Çalışma Motoru ve bitti kapıları bu yollarda da aynen geçerlidir.
+- **Tarayıcı eklentisi:** Chrome, Edge ve Firefox için. Her sohbet sitesi için ayrı ve kolay güncellenebilir bir site profili tutulur (mesaj kutusu, gönder butonu, cevap alanı, cevabın bittiğini gösteren işaret).
+- ⚠️ Bazı sitelerin ve uygulamaların kullanım koşulları otomasyonu yasaklayabilir. Eklenti ve Köprü, kullanıcının bilgilendirilip açıkça onay verdiği isteğe bağlı özelliklerdir.
+
+### 6.4 Masaüstü Köprüsü
+
+MCP desteği olmayan masaüstü sohbet uygulamalarını, insan gibi pano ve klavye kullanarak yWorkspace'e bağlar.
+
+**Döngü:**
+
+```
+yWorkspace                              Masaüstü uygulaması
+  1. Mesajı panoya kopyalar
+  2. Uygulama penceresini öne getirir,
+     doğru pencere olduğunu doğrular
+  3. Ctrl+V (macOS: Cmd+V) + Enter  ──────▶  Mesaj gönderildi
+                                              Yapay zekâ cevap yazıyor...
+  4. Cevabın bittiğini algılar
+  5. Cevabı alır  ◀─────────────────────────  yw:… blokları
+  6. Uygular, testleri çalıştırır
+  7. Sonucu panoya koyar → 2. adıma dön (iş bitene kadar)
+```
+
+**Cevabı alma yöntemleri (öncelik sırasıyla):**
+1. **Kopyala butonu:** İşletim sisteminin erişilebilirlik altyapısıyla (Windows UI Automation, macOS Accessibility, Linux AT-SPI) son cevabın kopyala butonu bulunup basılır, cevap panodan okunur. Kod biçimi bozulmaz.
+2. **Erişilebilirlik ağacından metin okuma:** Buton bulunamazsa pencere içeriği doğrudan okunur.
+3. **Ekran görüntüsü + OCR:** Son çare. Kod için güvenilirliği düşük olduğundan kullanıcı uyarılır.
+
+**Cevabın bittiğini algılama:** "Durdur" butonunun kaybolması, "gönder" butonunun yeniden etkinleşmesi ya da cevap metninin belirli bir süre değişmemesi.
+
+**Uygulama profilleri:** Her uygulama için pencere adı, mesaj kutusu, kopyala butonu, bitti işareti ve mesaj uzunluğu sınırı bir profil dosyasında tutulur. Uygulama tasarımı değişince sadece profil güncellenir. Topluluk yeni profil ekleyebilir.
+
+**Güvenlik ve kullanım kolaylığı:**
+- **Pano koruması:** Kullanıcının panodaki eski içeriği saklanır ve iş bitince geri konur.
+- **Pencere doğrulama:** Her yapıştırmadan önce önde doğru pencerenin olduğu kontrol edilir. Değilse yapıştırma yapılmaz.
+- **Acil durdurma:** Tek tuş kombinasyonuyla (varsayılan Ctrl+Shift+Q) köprü anında durur. Fare ekranın köşesine götürülünce de durur.
+- **Kullanıcı müdahalesi algılama:** Kullanıcı fare ya da klavyeyi kullanmaya başlarsa köprü duraklar, bekler ve devam etmeden önce sorar.
+- **Ayrı masaüstü modu:** Bilgisayar meşgul olmasın diye uygulama ayrı bir sanal masaüstünde (Linux'ta sanal ekran, Windows ve macOS'ta ayrı masaüstü ya da sanal makine) çalıştırılabilir.
+- **Uzun mesajlar:** Uygulamanın sınırını aşan mesajlar numaralı parçalara bölünür. Model tüm parçalar gelene kadar cevap vermemesi için yönlendirilir.
+
+**İşletim sistemi notları:**
+- **Windows:** Ek izin gerekmez.
+- **macOS:** Kullanıcının "Erişilebilirlik" ve gerekirse "Ekran Kaydı" izni vermesi gerekir. Sihirbaz adım adım gösterir.
+- **Linux:** X11'de doğrudan çalışır. Wayland otomasyonu kısıtlar. Desteklenen masaüstlerinde ilgili portal izinleri kullanılır, desteklenmiyorsa sihirbaz kullanıcıyı bilgilendirir.
 
 ---
 
@@ -444,6 +494,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 - **Yasak dosyalar:** `.env`, özel anahtarlar ve şifre dosyaları varsayılan olarak modele gösterilmez. Gerekirse değerleri değil, sadece isimleri gösterilir.
 - **Riskli işlem onayı:** Silme, yayına alma, veritabanı şeması değişikliği ve dışarıya istek her modda listelenir. Hangilerinin onay gerektireceği özerklik moduna göre belirlenir.
 - **Komut enjeksiyonu koruması:** Dosya ve web içerikleri modele her zaman "veri" olarak işaretlenmiş verilir. İçlerindeki talimatlar uygulanmaz.
+- **Otomasyon güvenliği:** Tarayıcı eklentisi ve Masaüstü Köprüsü yalnızca kullanıcı açıkça açtığında çalışır. Pano koruması, pencere doğrulama ve acil durdurma her zaman etkindir (bkz. 6.4).
 - **Anahtar güvenliği:** API anahtarları işletim sisteminin güvenli deposunda tutulur, günlüklere ve modele yazılmaz.
 - **Yerel ağ güvenliği:** Web arayüzü varsayılan olarak yalnızca bu bilgisayardan erişilebilir. Telefon eşleşmesi şifreli ve token'lıdır.
 
@@ -484,6 +535,8 @@ yworkspace/
 ├── tools/                  # tüm araç tanımları (tek kaynak)
 ├── models/                 # model adaptörleri ve profilleri
 ├── protocol/               # format çeviricileri, metin protokolü, MCP
+├── bridge/                 # Masaüstü Köprüsü + uygulama profilleri
+├── extension/              # tarayıcı eklentisi + site profilleri
 ├── engine/                 # derin çalışma motoru: döngü, roller, kapılar, hafıza
 ├── deploy/                 # yayına alma hedefleri
 ├── web/                    # web arayüzü (backend API + frontend)
@@ -507,14 +560,14 @@ Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 | 0 | **Temel:** depo yapısı, lisans, kod standartları, CI | CI yeşil, lisans dosyaları yerinde |
 | 1 | **Dosya motoru:** tüm dosya araçları + akıllı düzenleme + geçmiş | Kapsamlı testler geçiyor, kenar durumlar dahil |
 | 2 | **Sandbox:** Docker yönetimi, terminal ve süreç araçları | Konteynerde komut, arka plan sunucusu ve günlük okuma çalışıyor |
-| 3 | **Model katmanı:** adaptörler (önce DeepSeek, Gemini, Ollama, sonra diğerleri) + geliştirici CLI | DeepSeek ve Gemini, CLI'dan dosya okuyup düzenleyip test çalıştırabiliyor 🎯 |
+| 3 | **Model katmanı + metin protokolü:** adaptörler (önce DeepSeek, Gemini, Ollama, sonra diğerleri), metin protokolü ayrıştırıcısı, elle mod, geliştirici CLI | DeepSeek ve Gemini hem API'den hem elle moddan dosya okuyup düzenleyip test çalıştırabiliyor 🎯 |
 | 4 | **Derin Çalışma Motoru:** döngü, görev ağacı, roller, bitti kapıları, hafıza, kalite modları | Küçük bir web uygulaması, insan müdahalesi olmadan uçtan uca yapılabiliyor |
-| 5 | **Doğrulama araçları:** test, tarayıcı (Playwright), HTTP, git, veritabanı | Model uygulamayı tarayıcıda açıp hatayı görüp düzeltebiliyor |
-| 6 | **Web Arayüzü:** basit ve detaylı görünüm, TR/EN | Yazılım bilmeyen bir test kullanıcısı bir proje yaptırabiliyor |
-| 7 | **Kurulum Sihirbazı:** Windows, macOS, Linux yükleyicileri | Temiz bir bilgisayarda sıfırdan kurulum başarılı (3 işletim sisteminde) |
-| 8 | **Skill Kütüphanesi v1:** çekirdek + yazılım/SaaS skill'leri + dışa aktarma | Bench'te skill'li sonuçlar skill'sizden belirgin şekilde iyi |
-| 9 | **SaaS Kiti + Yayına alma** | Giriş + ödeme + panel içeren SaaS yapılıp bir VPS'e ve bir platforma yayınlanabiliyor |
-| 10 | **MCP sunucusu + metin protokolü + tarayıcı eklentisi** | Claude Desktop'tan ve bir web sohbetinden yWorkspace kullanılabiliyor |
+| 5 | **Tüm bağlantı yolları:** MCP sunucusu, tarayıcı eklentisi, Masaüstü Köprüsü | Claude Desktop'tan (MCP), bir web sohbetinden (eklenti) ve bir masaüstü uygulamasından (Köprü) aynı görev tamamlanabiliyor 🎯 |
+| 6 | **Doğrulama araçları:** test, tarayıcı (Playwright), HTTP, git, veritabanı | Model uygulamayı tarayıcıda açıp hatayı görüp düzeltebiliyor |
+| 7 | **Web Arayüzü:** basit ve detaylı görünüm, TR/EN | Yazılım bilmeyen bir test kullanıcısı bir proje yaptırabiliyor |
+| 8 | **Kurulum Sihirbazı:** Windows, macOS, Linux yükleyicileri | Temiz bir bilgisayarda sıfırdan kurulum başarılı (3 işletim sisteminde) |
+| 9 | **Skill Kütüphanesi v1:** çekirdek + yazılım/SaaS skill'leri + dışa aktarma | Bench'te skill'li sonuçlar skill'sizden belirgin şekilde iyi |
+| 10 | **SaaS Kiti + Yayına alma** | Giriş + ödeme + panel içeren SaaS yapılıp bir VPS'e ve bir platforma yayınlanabiliyor |
 | 11 | **Bench yayını + diğer skill kategorileri** | Sonuç tablosu yayında |
 | 12 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
 | 13 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
