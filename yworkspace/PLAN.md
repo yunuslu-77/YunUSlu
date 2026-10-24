@@ -21,7 +21,7 @@ yWorkspace bu üçünü birden çözer:
 |---|---|
 | Ortam eksik | Dosya, terminal, test, git, veritabanı, tarayıcı, yayına alma, derleme (APK, EXE, IPA, ISO...) ve medya (görsel, video, ses...) araçları olan, Docker içinde güvenli bir **tam geliştirme ortamı** |
 | Acele etme | İş gerçekten bitene kadar modeli çalıştıran **Derin Çalışma Motoru**. "Bitti" demesi, yazılım tarafından kontrol edilen kapılara bağlı |
-| Yöntem bilmeme | Her alanda derin, her yapay zekâya özel ayarlanmış, Türkçe ve İngilizce **skill kütüphanesi** |
+| Yöntem bilmeme | Her alanda derin, kullanıldıkça kendini geliştiren, her yapay zekâya özel ayarlanmış, Türkçe ve İngilizce **skill kütüphanesi** |
 
 **Yapay zekâya bahane bırakmamak** temel ilkedir. Model "bunu yapamam", "bu ortamda test edemem" ya da "bu kısmı siz tamamlayın" diyememeli.
 
@@ -49,7 +49,7 @@ yWorkspace bu üçünü birden çözer:
 | Skill kapsamı | **Her alan.** Yazılım ve SaaS çekirdektir, pazarlama, iş, belge, eğitim ve araştırma da dahil |
 | Skill dili | **Türkçe + İngilizce**, her yapay zekâ için ayrı ayar |
 | Geliştirme yeri | Bu depoda, `yworkspace/` klasörü |
-| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 17 |
+| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 24 |
 
 ---
 
@@ -196,6 +196,16 @@ Ayrıntılar: bölüm 12.
 | `media_inspect` | Medya dosyasının teknik kontrolü (süre, çözünürlük, siyah kare, ses senkronu) |
 
 Ayrıntılar: bölüm 13.
+
+### 5.8 Diğer araçlar
+
+| Araç | Görev | Bölüm |
+|---|---|---|
+| `monitor_*` | İzleme durumu, hata kayıtları, performans | 14 |
+| `security_scan` | Güvenlik Laboratuvarı taramaları | 16 |
+| `data_*` | Veri okuma, analiz, grafik, rapor | 17 |
+| `schedule_*` | Otomasyon ve zamanlanmış görev oluşturma | 19 |
+| `parallel_*` | Paralel iş başlatma, izleme, birleştirme | 7.9 |
 | `docs_fetch` / `web_search` | Kütüphane belgelerini okumak (isteğe bağlı, kullanıcı açar) |
 
 ### 5.5 Motor araçları
@@ -349,6 +359,7 @@ Aynı model farklı rollerde, **her rol temiz bir bağlamla** çalıştırılır
 | **Test uzmanı** | Testleri yazar ve çalıştırır, kenar durumları arar |
 | **İnceleyici** | Değişikliği kontrol listesiyle inceler (doğruluk, güvenlik, okunabilirlik) |
 | **Hata ayıklayıcı** | Başarısız testin kök nedenini bulur |
+| **Birleştirici** | Paralel çalışan dalları birleştirir, çakışmaları çözer (bkz. 7.9) |
 | **Yönetmen** | Medya işlerinde senaryo, sahne planı ve kalite kontrolünü yönetir (bkz. bölüm 13) |
 | **Test kullanıcısı** | Uygulamayı farklı persona'larla gerçek bir insan gibi kullanır, hata ve kullanılabilirlik raporu yazar |
 
@@ -374,6 +385,35 @@ Uzun işlerde modelin bağlam penceresi dolar. Küçük modellerde bu çok çabu
 ### 7.7 Sınırlar
 
 Bütçe (para), süre, adım sayısı ve aynı hatada en fazla deneme sayısı ayarlanabilir. Sınıra yaklaşınca kullanıcıya bildirim gider. Aynı hata tekrar tekrar alınırsa model yaklaşımını değiştirmeye zorlanır, sonuç yoksa kullanıcıya net bir rapor sunulur.
+
+### 7.8 Akıllı Model Yönlendirici
+
+Her iş aynı modeli gerektirmez. Yönlendirici her görevi en uygun modele gönderir:
+
+| Görev türü | Varsayılan yönlendirme |
+|---|---|
+| Kolay ve tekrar eden işler (dosya düzenleme, küçük düzeltme, özet) | Ucuz ya da ücretsiz model (ör. yerel model, DeepSeek) |
+| Zor işler (mimari, karmaşık hata ayıklama, güvenlik incelemesi) | Kullanıcının en güçlü modeli |
+| Görsel gerektiren işler | Görsel anlayabilen model ya da yardımcı görsel model |
+| Uzun belge ve büyük kod tabanı | Bağlam penceresi büyük model |
+
+- **Karar verme:** Görevin zorluğu, modelin profili (6.2), geçmiş başarı oranı (8.4), kalan bütçe ve kalite modu birlikte değerlendirilir.
+- **Yükseltme:** Ucuz model aynı görevde iki kez başarısız olursa görev otomatik olarak daha güçlü modele çıkarılır.
+- **Çoklu görüş:** Maksimum kalite modunda kritik kararlar için birden çok model görüş bildirir, sonuçlar karşılaştırılır.
+- **Yedekleme:** Bir modelin API'si çökerse ya da sınırı dolarsa iş başka modelle kaldığı yerden devam eder.
+- **Maliyet paneli:** Hangi modele ne kadar harcandığı ve yönlendiricinin ne kadar tasarruf ettirdiği gösterilir.
+- Kullanıcı kuralları her zaman önceliklidir (ör. "kodu sadece yerel modele gönder").
+
+### 7.9 Paralel Çalışma
+
+Büyük işler birbirinden bağımsız parçalara bölünüp **aynı anda** yapılır:
+
+- **Planlama:** Mimar rolü görev ağacındaki bağımsız dalları belirler (ör. giriş sistemi, ödeme, yönetim paneli, açılış sayfası).
+- **Yalıtım:** Her paralel çalışan kendi git dalında ve kendi Docker konteynerinde çalışır. Birbirlerinin dosyalarını bozamazlar.
+- **Ortak sözleşme:** Paralel işler başlamadan önce ortak arayüzler (API şemaları, veritabanı modelleri, tipler) belirlenir ve kilitlenir.
+- **Birleştirme:** Biten dallar birleştirme rolü tarafından ana dala alınır. Çakışmalar çözülür, tüm testler birlikte çalıştırılır.
+- **Sınırlar:** Aynı anda kaç işin çalışacağı bilgisayarın gücüne, API sınırlarına ve bütçeye göre ayarlanır.
+- Web arayüzünde her paralel işin ilerlemesi ayrı ayrı izlenebilir.
 
 ---
 
@@ -447,6 +487,18 @@ Skill'ler yWorkspace içinde otomatik kullanılır. Ayrıca yWorkspace olmadan k
 
 **F. Günlük yaşam**
 - Bütçe ve harcama planı, seyahat planı, sağlık takibi (tıbbi tavsiye değil)
+
+### 8.4 Kendini Geliştiren Skill'ler
+
+yWorkspace kullanıldıkça skill'ler ve model profilleri daha iyi hale gelir:
+
+1. **Kayıt:** Her çalışmada yapay zekânın nerede takıldığı, hangi hatayı tekrarladığı ve neyin işe yaradığı kaydedilir (ör. "DeepSeek, Flutter'da hep aynı içe aktarma hatasını yapıyor").
+2. **Analiz:** Sık tekrarlanan hatalar ve başarılı çözümler gruplanır.
+3. **İyileştirme önerisi:** İlgili skill'e ya da model profiline ek talimat, örnek veya kontrol listesi maddesi önerilir.
+4. **Kanıt:** Öneri yWorkspace Bench'te denenir. Sadece sonucu gerçekten iyileştiren değişiklikler kabul edilir.
+5. **Onay ve paylaşım:** Değişiklik kullanıcının kendi yWorkspace'inde onayla uygulanır. Kullanıcı isterse iyileştirmeyi pull request olarak YunUSlu deposuna gönderir, böylece herkes faydalanır.
+
+**Gizlilik:** Kayıtlar bilgisayardan izinsiz çıkmaz. Paylaşılan iyileştirmelerde proje kodu ve kişisel bilgiler yer almaz, sadece genel ders paylaşılır.
 
 ---
 
@@ -809,7 +861,150 @@ Model "video hazır" diyemez, kontrol yazılım tarafından yapılır:
 
 ---
 
-## 14. Web Arayüzü
+## 14. Bakım ve İzleme
+
+Bir SaaS'ın ömrü yayına çıktıktan sonra başlar. yWorkspace, yaptığı projeyi yayından sonra da sahiplenir.
+
+### 14.1 İzleme
+- **Erişilebilirlik:** Site ve API düzenli aralıklarla kontrol edilir, kapanırsa bildirim gider.
+- **Hata takibi:** Uygulamaya eklenen hata takibi (ör. kendi barındırılan Sentry uyumlu çözüm) ile kullanıcıların aldığı hatalar toplanır.
+- **Performans:** Yanıt süreleri, sunucu kaynakları, veritabanı yavaş sorguları.
+- **Güvenlik:** Bağımlılıklarda yeni açık çıktığında uyarı, SSL sertifikası süresi, şüpheli giriş denemeleri.
+- **Yedekler:** Yedeklerin gerçekten alındığı ve **geri yüklenebildiği** düzenli olarak denenir.
+- **İş ölçütleri (isteğe bağlı):** Yeni kayıtlar, aktif kullanıcılar, abonelik gelirleri.
+
+yWorkspace bilgisayarda çalıştığı için izleme, bilgisayar açıkken yapılır. Kesintisiz izleme isteyen kullanıcı için yayına alma sırasında sunucuya küçük bir **izleme ajanı** kurulur. Bu ajan kullanıcının kendi sunucusunda çalışır, YunUSlu'ya veri göndermez.
+
+### 14.2 Otomatik düzeltme döngüsü
+
+```
+Hata yakalandı → yapay zekâ günlükleri ve hata kaydını inceler
+→ hatayı yerelde yeniden üretir → kök nedeni bulur → düzeltir
+→ test ekler → tüm testler + insan gibi kullanım → kullanıcıya rapor
+→ onay → yayına alma → hatanın düzeldiği izlemeyle doğrulanır
+```
+
+Yayına alma her zaman onay gerektirir. Kullanıcı isterse yalnızca kritik güvenlik yamaları için önceden izin verebilir.
+
+### 14.3 Düzenli bakım
+- Bağımlılık güncellemeleri (testlerle doğrulanarak)
+- Veritabanı bakımı ve gereksiz verilerin temizlenmesi
+- Aylık sağlık raporu: çalışma süresi, hatalar, performans, güvenlik, yapılan bakımlar
+
+---
+
+## 15. Lansman Kiti
+
+Ürün bitince yapay zekâ onu dünyaya tanıtmak için gereken her şeyi hazırlar:
+
+| Parça | İçerik |
+|---|---|
+| **Açılış sayfası** | Ürün tanıtım sayfası, özellikler, fiyatlar, sıkça sorulan sorular, bekleme listesi |
+| **SEO** | Anahtar kelime araştırması, meta etiketler, site haritası, yapılandırılmış veri, blog yazısı taslakları |
+| **Mağaza sayfaları** | Google Play ve App Store açıklamaları, anahtar kelimeler, ekran görüntüleri ve tanıtım videosu (Medya Stüdyosu ile) |
+| **Sosyal medya paketi** | Lansman gönderileri, kısa videolar, görseller, paylaşım takvimi |
+| **E-posta** | Hoş geldin e-postaları, lansman duyurusu, bülten şablonları |
+| **Fiyatlandırma** | Rakip fiyat analizi ve plan önerileri |
+| **Yasal metinler** | Gizlilik politikası, KVKK aydınlatma metni, çerez politikası, kullanım koşulları **taslakları**. ⚠️ Hukuki tavsiye değildir, yayınlamadan önce uzman kontrolü önerilir |
+| **Lansman listesi** | Product Hunt ve benzeri platformlar için hazırlık, basın bülteni, adım adım lansman planı |
+
+Lansman Kiti, "İş ve pazarlama" skill'lerini (bölüm 8.3) ve Medya Stüdyosu'nu (bölüm 13) birlikte kullanır.
+
+---
+
+## 16. Güvenlik Laboratuvarı
+
+İnceleyici rolünden çok daha derin, **yalnızca kullanıcının kendi projesine** uygulanan güvenlik denetimi:
+
+| Kontrol | Açıklama | Araç örnekleri |
+|---|---|---|
+| **Statik kod analizi** | Koddaki güvenlik açığı kalıpları | Semgrep, Bandit, ESLint güvenlik kuralları |
+| **Bağımlılık taraması** | Kullanılan kütüphanelerdeki bilinen açıklar | OSV-Scanner, pip-audit, npm audit |
+| **Gizli bilgi taraması** | Koda ya da git geçmişine kaçmış şifre ve anahtarlar | Gitleaks, TruffleHog |
+| **Konteyner taraması** | Docker imajlarındaki açıklar | Trivy |
+| **Altyapı yapılandırması** | Yanlış yapılandırılmış sunucu, açık portlar, zayıf SSL | Trivy, testssl.sh |
+| **Dinamik test** | Çalışan uygulamaya kontrollü saldırı denemeleri (OWASP Top 10) | OWASP ZAP, Nuclei |
+| **Kimlik ve yetki testleri** | Başka kullanıcının verisine erişme, yetki yükseltme, oturum hataları | Özel test senaryoları + İnsan Gibi Kullanım |
+| **Mobil uygulama analizi** | APK/IPA içindeki güvensiz ayarlar ve gömülü anahtarlar | MobSF |
+
+**Çıktılar:** Önem sırasına göre güvenlik raporu, her bulgu için düzeltme ve düzeltmeden sonra yeniden test. Kritik bulgu varken yayına alma bitti kapısı kapalı kalır.
+
+**Kurallar:** Dinamik testler yalnızca yerel ortamdaki ya da kullanıcının sahibi olduğunu onayladığı sunucudaki uygulamaya yapılır. Başkasına ait sistemlere test yapılmaz.
+
+---
+
+## 17. Veri Laboratuvarı
+
+Yazılım bilmeyen biri için en sık istek: "Şu verimi analiz et."
+
+- **Veri okuma:** Excel, CSV, JSON, veritabanları, Google Sheets dışa aktarımları, PDF tabloları.
+- **Temizleme:** Eksik, bozuk ve tekrarlanan verilerin düzeltilmesi. Her değişiklik raporlanır.
+- **Analiz:** Özet istatistikler, eğilimler, karşılaştırmalar, segmentler. Sonuçlar sade bir dille anlatılır.
+- **Görselleştirme:** Grafikler ve etkileşimli gösterge panelleri (dashboard).
+- **Raporlar:** PDF, Excel, sunum ya da web sayfası olarak rapor.
+- **Jupyter defterleri:** Yazılımcılar için adım adım, tekrar çalıştırılabilir analiz.
+- **Makine öğrenmesi:** Tahmin, sınıflandırma, kümeleme gibi basit modelleri eğitme ve değerlendirme. Sonuçların güvenilirliği açıkça belirtilir.
+- **SaaS bağlantısı:** Yapılan SaaS'ın verilerinden otomatik iş raporları.
+
+**Doğruluk önlemi:** Yapay zekâ sayıları kendisi "tahmin etmez". Her sayı gerçekten çalıştırılan koddan gelir ve rapordaki her sonucun hangi koddan çıktığı gösterilir.
+
+---
+
+## 18. Var Olan Projeyi Devralma
+
+Başkasının yazdığı, eski ya da belgesiz bir projeyi yapay zekânın baştan sona anlayıp üzerinde güvenle çalışması:
+
+1. **Keşif:** Dosya yapısı, kullanılan teknolojiler, bağımlılıklar, nasıl çalıştırıldığı.
+2. **Harita:** Mimari diyagram, modüller arası ilişkiler, veri akışı, veritabanı şeması.
+3. **Çalıştırma:** Projeyi Docker'da ayağa kaldırma. Eksik ayarları ve bozuk bağımlılıkları bulma.
+4. **Belgeleme:** README, mimari belgesi, kurulum kılavuzu, API belgesi.
+5. **Güvenlik ağı:** Değişikliğe başlamadan önce mevcut davranışı koruyan testler yazma.
+6. **Sağlık raporu:** Teknik borç, güvenlik açıkları, eski bağımlılıklar, öncelikli iyileştirme listesi.
+7. **Taşıma (isteğe bağlı):** Eski sürümden yeniye (ör. Java'dan Kotlin'e, eski Android API'lerinden yenilere) adım adım, her adımda testlerle.
+
+İlk gerçek kullanım: **YunUSlu'nun 20 uygulaması.**
+
+---
+
+## 19. Otomasyonlar ve Zamanlanmış Görevler
+
+Tekrar eden işler bir kez tanımlanır, yWorkspace zamanı gelince kendisi yapar:
+
+- **Zamanlanmış:** "Her gece testleri çalıştır", "her pazartesi haftalık rapor hazırla", "her sabah sosyal medya gönderisi taslağı hazırla".
+- **Olaya bağlı:** "Yeni hata yakalanınca incele", "bağımlılıkta açık çıkınca güncelle", "klasöre yeni dosya gelince işle".
+- **Zincirleme:** Bir işin çıktısı diğerinin girdisi olur (ör. veri raporu → grafik → e-posta taslağı).
+
+**Kurallar:**
+- Otomasyonlar bilgisayar açıkken çalışır. Kaçırılan görev bilgisayar açıldığında yapılır ya da kullanıcıya sorulur.
+- Dışarıya etki eden adımlar (e-posta gönderme, yayınlama, ödeme) varsayılan olarak onay ister.
+- Her otomasyonun bütçe sınırı ve çalışma geçmişi vardır.
+
+---
+
+## 20. Eklenti Sistemi (SDK)
+
+Herkesin yWorkspace'e katkı ekleyebilmesi için resmi bir eklenti yapısı:
+
+| Eklenti türü | Örnek |
+|---|---|
+| **Araç** | Yeni bir veritabanı, yeni bir bulut hizmeti, özel bir test aracı |
+| **Skill** | Yeni bir alanda uzmanlık |
+| **Model adaptörü** | Yeni çıkan bir yapay zekâ |
+| **Uygulama ve site profili** | Masaüstü Köprüsü ve tarayıcı eklentisi için yeni sohbet uygulaması |
+| **Derleme tarifi** | Yeni bir çıktı türü |
+| **Yayına alma hedefi** | Yeni bir barındırma hizmeti |
+| **Medya hattı** | Yeni bir video ya da görsel üretim akışı |
+| **SaaS modülü** | Yeni bir ödeme sağlayıcısı |
+| **Arayüz paneli** | Web arayüzüne yeni bir panel |
+
+- **Geliştirme kiti:** Şablon oluşturucu, belgeler (TR/EN), örnek eklentiler, test araçları.
+- **İzinler:** Her eklenti neye eriştiğini bildirir (dosya, ağ, terminal...). Kullanıcı kurarken izinleri görür ve onaylar.
+- **Yalıtım:** Eklentiler kendi sınırları içinde çalışır, yWorkspace çekirdeğini bozamaz.
+- **Katalog:** Topluluk eklentilerinin listelendiği bir katalog. Katalogdaki eklentiler YunUSlu deposuna pull request ile gelir ve incelenir. Böylece her katkıdan haberin olur (bkz. bölüm 24).
+
+---
+
+## 21. Web Arayüzü
 
 Yerel olarak çalışır (`http://localhost`), tarayıcıda açılır. İki görünümü vardır:
 
@@ -830,7 +1025,7 @@ Yerel olarak çalışır (`http://localhost`), tarayıcıda açılır. İki gör
 
 ---
 
-## 15. Android uzaktan kumanda
+## 22. Android uzaktan kumanda
 
 Bulut olmadığı için Android uygulaması, **kullanıcının kendi bilgisayarındaki** yWorkspace'e bağlanır:
 - Aynı Wi-Fi ağında: QR kod ile eşleşme.
@@ -840,7 +1035,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 16. Güvenlik
+## 23. Güvenlik
 
 - **Docker sandbox:** Tüm komutlar konteynerde çalışır. Konteyner sadece proje klasörünü görür.
 - **Çalışma alanı sınırı:** Dosya araçları proje klasörünün dışına çıkamaz (`../` ve sembolik bağlantılar engellenir).
@@ -853,7 +1048,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 17. Lisans — ✅ Karar verildi
+## 24. Lisans — ✅ Karar verildi
 
 Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
@@ -867,7 +1062,7 @@ Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
 ---
 
-## 18. Ölçüm: yWorkspace Bench
+## 25. Ölçüm: yWorkspace Bench
 
 "Zayıf modellerden vay dedirttik" iddiasını kanıtlamak için ölçmemiz gerekiyor:
 
@@ -878,7 +1073,7 @@ Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
 ---
 
-## 19. Depo yapısı
+## 26. Depo yapısı
 
 ```
 yworkspace/
@@ -895,6 +1090,15 @@ yworkspace/
 ├── factory/                # Derleme Fabrikası: derleyici imajları, tarifler, imzalama
 ├── operator/               # İnsan Gibi Kullanım: ekran, emülatör ve sanal makine kontrolü
 ├── studio/                 # Medya Stüdyosu: görsel, video, ses, müzik, 3B, anlama
+├── ops/                    # Bakım ve İzleme + izleme ajanı
+├── launch/                 # Lansman Kiti
+├── labs/
+│   ├── security/           # Güvenlik Laboratuvarı
+│   └── data/               # Veri Laboratuvarı
+├── adopt/                  # Var Olan Projeyi Devralma
+├── automations/            # Otomasyonlar ve zamanlanmış görevler
+├── learn/                  # Kendini Geliştiren Skill'ler
+├── sdk/                    # Eklenti Sistemi
 ├── web/                    # web arayüzü (backend API + frontend)
 ├── installer/              # kurulum sihirbazı (Windows/macOS/Linux)
 ├── skills/                 # skill kütüphanesi
@@ -907,7 +1111,7 @@ yworkspace/
 
 ---
 
-## 20. Yol haritası
+## 27. Yol haritası
 
 Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 
@@ -916,26 +1120,34 @@ Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 | 0 | **Temel:** depo yapısı, lisans, kod standartları, CI | CI yeşil, lisans dosyaları yerinde |
 | 1 | **Dosya motoru:** tüm dosya araçları + akıllı düzenleme + geçmiş | Kapsamlı testler geçiyor, kenar durumlar dahil |
 | 2 | **Sandbox:** Docker yönetimi, terminal ve süreç araçları | Konteynerde komut, arka plan sunucusu ve günlük okuma çalışıyor |
-| 3 | **Model katmanı + metin protokolü:** adaptörler (önce DeepSeek, Gemini, Ollama, sonra diğerleri), metin protokolü ayrıştırıcısı, elle mod, geliştirici CLI | DeepSeek ve Gemini hem API'den hem elle moddan dosya okuyup düzenleyip test çalıştırabiliyor 🎯 |
-| 4 | **Derin Çalışma Motoru:** döngü, görev ağacı, roller, bitti kapıları, hafıza, kalite modları | Küçük bir web uygulaması, insan müdahalesi olmadan uçtan uca yapılabiliyor |
-| 5 | **Tüm bağlantı yolları:** MCP sunucusu, tarayıcı eklentisi, Masaüstü Köprüsü | Claude Desktop'tan (MCP), bir web sohbetinden (eklenti) ve bir masaüstü uygulamasından (Köprü) aynı görev tamamlanabiliyor 🎯 |
-| 6 | **Doğrulama araçları + İnsan Gibi Kullanım (web):** test, tarayıcıda insan gibi kullanım (Playwright), HTTP, git, veritabanı | Model web uygulamasını insan gibi kullanıp hatayı görüp düzeltebiliyor |
+| 3 | **Model katmanı + metin protokolü:** adaptörler (önce DeepSeek, Gemini, Ollama, sonra diğerleri), metin protokolü, elle mod, geliştirici CLI | DeepSeek ve Gemini hem API'den hem elle moddan dosya okuyup düzenleyip test çalıştırabiliyor 🎯 |
+| 4 | **Derin Çalışma Motoru:** döngü, görev ağacı, roller, bitti kapıları, hafıza, kalite modları | Küçük bir web uygulaması insan müdahalesi olmadan uçtan uca yapılabiliyor |
+| 5 | **Tüm bağlantı yolları:** MCP, tarayıcı eklentisi, Masaüstü Köprüsü | Aynı görev Claude Desktop'tan, bir web sohbetinden ve bir masaüstü uygulamasından tamamlanabiliyor 🎯 |
+| 6 | **Doğrulama araçları + İnsan Gibi Kullanım (web)** | Model web uygulamasını insan gibi kullanıp hatayı görüp düzeltebiliyor |
 | 7 | **Web Arayüzü:** basit ve detaylı görünüm, TR/EN | Yazılım bilmeyen bir test kullanıcısı bir proje yaptırabiliyor |
-| 8 | **Kurulum Sihirbazı:** Windows, macOS, Linux yükleyicileri | Temiz bir bilgisayarda sıfırdan kurulum başarılı (3 işletim sisteminde) |
+| 8 | **Kurulum Sihirbazı:** Windows, macOS, Linux | Temiz bir bilgisayarda sıfırdan kurulum başarılı (3 işletim sisteminde) |
 | 9 | **Skill Kütüphanesi v1:** çekirdek + yazılım/SaaS skill'leri + dışa aktarma | Bench'te skill'li sonuçlar skill'sizden belirgin şekilde iyi |
-| 10 | **SaaS Kiti + Yayına alma** | Giriş + ödeme + panel içeren SaaS yapılıp bir VPS'e ve bir platforma yayınlanabiliyor |
-| 11 | **Derleme Fabrikası v1:** APK/AAB, EXE/MSI/kurulum sihirbazı, Linux paketleri, Docker imajları, web/PWA, imzalama yöneticisi | Aynı uygulamadan APK, EXE ve DEB üretilip emülatörde, Wine'da ve temiz konteynerde açıldığı kanıtlanıyor |
-| 12 | **Derleme Fabrikası v2:** IPA ve macOS (Mac derleme makinesi), ISO/IMG/sanal makine imajları, eklentiler, kütüphane paketleri, oyun, gömülü sistemler, TV/saat, mağaza yüklemeleri | Bir özel Linux ISO'su QEMU'da açılıyor, bir IPA Mac üzerinden derleniyor |
-| 13 | **İnsan Gibi Kullanım:** web, Android, Linux ve Windows uygulamaları, ISO kurulumları, iOS ve macOS (Mac ile); persona'lar, kullanıcı yolculukları, raporlar, otomatik teste dönüştürme | Yapay zekâ bir SaaS'a kayıt olup test ödemesi yapıyor, bir APK'yı emülatörde baştan sona kullanıyor ve bulduğu hatayı kendisi düzeltiyor |
-| 14 | **Medya Stüdyosu v1:** kodla üretim (grafik, diyagram, kodla video), metinden konuşma, konuşmadan metne, görsel anlama ve OCR, görsel üretimi, uygulama ikonları | DeepSeek (metin modeli) altyazılı ve seslendirmeli bir tanıtım videosu üretiyor ve bitti kapılarından geçiyor 🎯 |
-| 15 | **Medya Stüdyosu v2:** yerel video modelleri, müzik, 3B, dış API'ler, hazır üretim hatları, lisans takibi | Ekran kartı olan bir bilgisayarda metinden video ve müzikli bir sosyal medya paketi üretiliyor |
-| 16 | **Bench yayını + diğer skill kategorileri** | Sonuç tablosu yayında |
-| 17 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
-| 18 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
+| 10 | **Eklenti Sistemi (SDK)** | Örnek bir araç, skill ve model adaptörü eklenti olarak kurulup çalışıyor |
+| 11 | **Akıllı Model Yönlendirici + Paralel Çalışma** | Aynı proje, tek modele göre daha ucuza ve daha kısa sürede, aynı kalitede tamamlanıyor |
+| 12 | **SaaS Kiti + Yayına alma** | Giriş + ödeme + panel içeren SaaS yapılıp bir VPS'e ve bir platforma yayınlanabiliyor |
+| 13 | **Güvenlik Laboratuvarı** | Bilerek açık bırakılmış örnek bir projedeki açıklar bulunup düzeltiliyor |
+| 14 | **Bakım ve İzleme** | Yayındaki uygulamada oluşturulan bir hata yakalanıyor, düzeltiliyor ve onayla yayınlanıyor |
+| 15 | **Derleme Fabrikası v1:** APK/AAB, EXE/MSI, Linux paketleri, Docker, web/PWA, imzalama | Aynı uygulamadan APK, EXE ve DEB üretilip emülatörde, Wine'da ve temiz konteynerde açılıyor |
+| 16 | **Derleme Fabrikası v2:** IPA ve macOS (Mac ile), ISO/IMG/VM imajları, eklentiler, paketler, oyun, gömülü, TV/saat, mağazalar | Bir özel Linux ISO'su QEMU'da açılıyor, bir IPA Mac üzerinden derleniyor |
+| 17 | **İnsan Gibi Kullanım (tüm platformlar)** | Yapay zekâ bir APK'yı emülatörde baştan sona kullanıp bulduğu hatayı kendisi düzeltiyor |
+| 18 | **Medya Stüdyosu v1:** kodla üretim, seslendirme, altyazı, görsel üretimi, anlama, ikonlar | DeepSeek seslendirmeli ve altyazılı bir tanıtım videosu üretiyor 🎯 |
+| 19 | **Medya Stüdyosu v2:** yerel video modelleri, müzik, 3B, dış API'ler, üretim hatları | Metinden video ve müzikli bir sosyal medya paketi üretiliyor |
+| 20 | **Var Olan Projeyi Devralma** | YunUSlu uygulamalarından biri belgelenip testlerle güvenceye alınıyor |
+| 21 | **Lansman Kiti** | Yapılan bir SaaS için açılış sayfası, mağaza sayfası ve sosyal medya paketi hazırlanıyor |
+| 22 | **Veri Laboratuvarı** | Bir Excel dosyasından doğrulanabilir sayılarla rapor ve gösterge paneli üretiliyor |
+| 23 | **Otomasyonlar ve Zamanlanmış Görevler** | Gece testleri ve haftalık rapor otomasyonu bir hafta boyunca sorunsuz çalışıyor |
+| 24 | **Kendini Geliştiren Skill'ler + Bench yayını + diğer skill kategorileri** | Otomatik bir skill iyileştirmesi Bench'te ölçülebilir fark yaratıyor, sonuç tablosu yayında |
+| 25 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
+| 26 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
 
 ---
 
-## 21. Açık sorular
+## 28. Açık sorular
 
 1. **Test için API anahtarları:** Aşama 3'te DeepSeek ve Gemini için gerçek anahtarlar gerekecek.
 2. **Logo ve tasarım:** yWorkspace ikonu, diğer y-uygulamalarının mavi tasarım diliyle mi olsun?
