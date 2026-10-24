@@ -1,0 +1,7 @@
+- TypeScript strict. Validate every request body/query with zod (Express/Fastify) or class-validator (NestJS).
+- Structure: routes/controllers thin → services (business rules) → repositories (DB).
+- Central error handler returning `{ error: { code, message } }` with correct status codes.
+- Security middleware: helmet, CORS allow-list, rate limiting on auth endpoints, body size limits.
+- Prisma migrations for schema changes; never build SQL by string concatenation.
+- Tests: vitest/jest + supertest against an in-memory or temporary database.
+- Graceful shutdown on SIGTERM; health endpoint `/health`.

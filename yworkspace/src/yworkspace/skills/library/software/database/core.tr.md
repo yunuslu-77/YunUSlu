@@ -1,0 +1,8 @@
+- Gerçek varlıkları ve ilişkilerini modelle; her yerde birincil anahtar; ON DELETE kurallı yabancı anahtarlar.
+- Kısıtlar sadece kodda değil veritabanında: NOT NULL, UNIQUE (örn. lower(email)), CHECK.
+- Çok kiracılı SaaS: kiracıya ait her tabloda `tenant_id`, her sorgu buna göre filtreler (bunu test et!).
+- Para tam sayı alt birimle (kuruş) ya da DECIMAL, asla float değil. Zamanlar UTC (`timestamptz`).
+- Sık sorguların WHERE/JOIN/ORDER BY sütunlarına indeks; planları EXPLAIN ile kontrol et.
+- Taşımalar: her değişiklik için bir tane, geri alınabilir; uygulanmış taşımayı asla düzenleme; doldurmayı parça parça yap.
+- N+1 sorgulardan kaçın (eager loading / join). Her listeyi sayfala.
+- Yıkıcı taşımalardan önce yedek al; üretimde açık onay olmadan asla DROP çalıştırma.

@@ -184,3 +184,35 @@ def setup_command(sub, cfg) -> None:
         print("\n" + ("Kurulum tamam. Başlamak için: yw web" if tr else "Setup finished. To start: yw web"))
         return 0
     s.set_defaults(fn=run)
+
+
+@command
+def skills_command(sub, cfg) -> None:
+    s = sub.add_parser("skills", help="skill kütüphanesi / skill library")
+    s.add_argument("action", choices=["list", "show", "match", "export"])
+    s.add_argument("arg", nargs="?", help="skill name (show), task text (match) or output folder (export)")
+    s.add_argument("--format", action="append", choices=["claude", "chatgpt", "gemini", "deepseek", "prompt"])
+    s.add_argument("--lang", action="append", choices=["tr", "en"])
+    s.add_argument("--role", default="developer")
+
+    def run(a, cfg) -> int:
+        from ..skills import load_all, select
+        from ..skills.export import FORMATS, export
+        if a.action == "list":
+            for sk in load_all():
+                print(f"{sk.category:10} {sk.name:20} {sk.title_tr if cfg.lang == 'tr' else sk.title_en}")
+        elif a.action == "show":
+            sk = next((x for x in load_all() if x.name == a.arg), None)
+            if not sk:
+                print(f"No skill {a.arg}")
+                return 1
+            print(sk.text(cfg.lang))
+        elif a.action == "match":
+            for sk in select(a.role, a.arg or "", Path.cwd()):
+                print(sk.name)
+        else:
+            out = Path(a.arg or "skills-export")
+            files = export(out, a.format or FORMATS, a.lang or ("tr", "en"))
+            print(f"{len(files)} files written to {out.resolve()}")
+        return 0
+    s.set_defaults(fn=run)

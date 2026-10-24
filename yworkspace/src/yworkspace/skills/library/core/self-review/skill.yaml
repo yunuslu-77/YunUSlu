@@ -1,0 +1,17 @@
+name: self-review
+title_tr: Kendi işini inceleme
+title_en: Self-review
+description: Review your own changes like a strict senior reviewer before declaring
+  them done.
+triggers:
+- review
+- incele
+- kontrol
+- check my
+- pull request
+- pr
+- diff
+roles:
+- reviewer
+- developer
+priority: 75

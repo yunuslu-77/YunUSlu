@@ -166,4 +166,7 @@ def default_prompts(lang: str = "tr") -> dict[str, tuple[str, str]]:
     for key in ("analyst", "architect", "developer", "reviewer", "debugger", "tester"):
         role = ROLES[key]
         out[f"role-{key}"] = (f"yWorkspace role: {role.title_tr}", system_prompt(role, lang))
+    from ..skills import load_all
+    for s in load_all():
+        out[f"skill-{s.name}"] = (s.title_tr if lang == "tr" else s.title_en, s.text(lang))
     return out

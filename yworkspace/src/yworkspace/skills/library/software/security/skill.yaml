@@ -1,0 +1,21 @@
+name: security
+title_tr: Uygulama güvenliği (OWASP)
+title_en: Application security (OWASP)
+description: Prevent the common web vulnerabilities and handle secrets correctly.
+triggers:
+- security
+- güvenlik
+- owasp
+- xss
+- csrf
+- sql injection
+- secret
+- gizli
+- vulnerability
+- açık
+- pentest
+- cors
+- ssrf
+roles:
+- reviewer
+priority: 60

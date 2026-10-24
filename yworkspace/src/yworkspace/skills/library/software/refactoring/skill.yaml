@@ -1,0 +1,15 @@
+name: refactoring
+title_tr: Yeniden düzenleme
+title_en: Refactoring
+description: Improve structure without changing behaviour, protected by tests.
+triggers:
+- refactor
+- yeniden düzenle
+- temizle
+- clean up
+- simplify
+- sadeleştir
+- duplicate
+- tekrar
+roles: []
+priority: 45

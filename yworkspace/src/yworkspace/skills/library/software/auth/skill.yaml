@@ -1,0 +1,28 @@
+name: auth
+title_tr: Kimlik doğrulama ve yetkilendirme
+title_en: Authentication and authorization
+description: Implement sign-up, login, sessions, roles and teams securely.
+triggers:
+- auth
+- login
+- giriş
+- kayıt
+- signup
+- sign up
+- register
+- password
+- şifre
+- parola
+- oauth
+- jwt
+- session
+- rol
+- role
+- permission
+- yetki
+- 2fa
+- team
+- ekip
+- multi-tenant
+roles: []
+priority: 65

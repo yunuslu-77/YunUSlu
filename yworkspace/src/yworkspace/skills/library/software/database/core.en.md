@@ -1,0 +1,8 @@
+- Model the real entities and their relations; primary keys everywhere; foreign keys with ON DELETE rules.
+- Constraints in the database, not only in code: NOT NULL, UNIQUE (e.g. lower(email)), CHECK.
+- Multi-tenant SaaS: every tenant-owned table has `tenant_id`, every query filters by it (test this!).
+- Money as integer minor units (kuruş/cents) or DECIMAL, never float. Times in UTC (`timestamptz`).
+- Index columns used in WHERE/JOIN/ORDER BY of frequent queries; check plans with EXPLAIN.
+- Migrations: one per change, reversible, never edit an applied migration; backfill in batches.
+- Avoid N+1 queries (eager loading / joins). Paginate every list.
+- Back up before destructive migrations; never run DROP on production without explicit approval.

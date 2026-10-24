@@ -1,0 +1,14 @@
+name: nextjs
+title_tr: Next.js tam yığın
+title_en: Next.js full stack
+description: Build full-stack Next.js (App Router, TypeScript) apps with a real database.
+triggers:
+- next.js
+- nextjs
+- next
+- app router
+- server actions
+- react server components
+- vercel
+roles: []
+priority: 60

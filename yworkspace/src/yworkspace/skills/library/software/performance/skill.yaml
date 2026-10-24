@@ -1,0 +1,19 @@
+name: performance
+title_tr: Performans ve ölçeklenme
+title_en: Performance and scaling
+description: Measure first, then fix the real bottleneck.
+triggers:
+- performance
+- performans
+- slow
+- yavaş
+- optimize
+- optimizasyon
+- cache
+- önbellek
+- scaling
+- ölçeklen
+- latency
+- memory leak
+roles: []
+priority: 45

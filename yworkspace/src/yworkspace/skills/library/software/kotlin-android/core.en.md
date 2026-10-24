@@ -1,0 +1,7 @@
+- Kotlin + Jetpack Compose + Material 3; MVVM: Composable → ViewModel (StateFlow) → Repository → data sources.
+- DI with Hilt; persistence with Room; networking with Retrofit/Ktor + kotlinx.serialization.
+- Coroutines: viewModelScope, never block the main thread; handle cancellation.
+- Permissions requested at the moment they are needed, with a rationale; handle "denied".
+- Strings in `res/values/strings.xml` and `values-tr/strings.xml`; content descriptions for icons.
+- Tests: JUnit + Turbine for flows, Compose UI tests; run `./gradlew test` and `./gradlew lint`.
+- Builds: `./gradlew assembleRelease` (APK), `bundleRelease` (AAB) with a release keystore (never commit it).

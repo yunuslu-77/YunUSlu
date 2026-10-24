@@ -1,0 +1,20 @@
+name: debugging
+title_tr: Hata ayıklama (kök neden)
+title_en: Debugging to the root cause
+description: Find and fix the real cause of a failure instead of patching symptoms.
+triggers:
+- bug
+- error
+- hata
+- fails
+- failing
+- crash
+- çöküyor
+- exception
+- traceback
+- debug
+- çalışmıyor
+- broken
+roles:
+- debugger
+priority: 80

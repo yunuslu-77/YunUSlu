@@ -1,0 +1,20 @@
+name: existing-project
+title_tr: Var olan projede çalışma
+title_en: Working in an existing project
+description: Understand an unfamiliar codebase before changing it, and change it safely.
+triggers:
+- existing
+- legacy
+- var olan
+- mevcut proje
+- eski proje
+- codebase
+- kod tabanı
+- onboard
+- anla
+- understand
+- migrate
+- taşı
+- upgrade
+roles: []
+priority: 55

@@ -1,0 +1,8 @@
+- One Django app per feature. Custom user model from day one (`AUTH_USER_MODEL`).
+- Use the admin for back-office needs before building custom screens.
+- Forms/serializers validate input; views stay thin; business rules in model methods or services.
+- `makemigrations` + `migrate` for every model change; commit migrations.
+- Security: keep CSRF on, `ALLOWED_HOSTS`, `SECURE_*` settings for production, secrets from env.
+- Templates + HTMX for simple interactivity; DRF when a separate frontend or mobile app needs an API.
+- Tests: `pytest-django`, `client.login`, factory_boy for data.
+- Run: `python manage.py runserver 0.0.0.0:8000` with start_process.

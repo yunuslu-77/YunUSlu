@@ -1,0 +1,9 @@
+- Prefer a proven library/provider (Auth.js, Django auth, FastAPI-Users, Supabase/Keycloak) over custom crypto.
+- Passwords: argon2id/bcrypt, minimum length 8+, check against common-password lists, never log them.
+- E-mail verification and password reset with single-use, expiring, hashed tokens.
+- Sessions: HttpOnly + Secure + SameSite cookies; or short-lived access JWT + rotating refresh token.
+- Rate-limit login, signup and reset endpoints; same response for "unknown email" and "wrong password".
+- Authorization on EVERY request: check the user may act on THIS object (ownership/tenant), not just "logged in".
+- Roles and permissions in one place (policy functions); teams/invitations with expiring invite tokens.
+- Optional 2FA (TOTP) for admins. Log security events (login, password change, role change).
+- Tests: user A cannot read/modify user B's data - for every resource.

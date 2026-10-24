@@ -1,0 +1,5 @@
+- Refactoring changes structure, never behaviour. Tests must pass before and after each step.
+- Small, named steps: extract function, rename, move, inline, remove duplication - one at a time.
+- Rename with `search` first to find every usage; update them all in the same step.
+- Do not mix refactoring with new features in the same task.
+- Stop when the code is clear enough for the task at hand; do not gold-plate.

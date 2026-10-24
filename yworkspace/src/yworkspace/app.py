@@ -89,7 +89,8 @@ def build_session(project: str | Path, cfg: Config | None = None, approver: Appr
         sess.engine = Engine(ws, reg, provider_for, profile_for, sandbox=sb, approver=approver or Approver(),
                              autonomy=cfg.autonomy, quality=cfg.quality, lang=cfg.lang, budget_usd=cfg.budget_usd,
                              max_minutes=cfg.max_minutes, on_event=on_event,
-                             skills_for=lambda role, text: skills_for(role, text, cfg.lang, ws.root))
+                             skills_for=lambda role, text: skills_for(role, text, cfg.lang, ws.root,
+                                                                      getattr(profile_for(role), "id", None)))
         if extensions:
             from .extensions import install_gates
             install_gates(sess)

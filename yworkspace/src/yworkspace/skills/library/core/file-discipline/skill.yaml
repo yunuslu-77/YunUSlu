@@ -1,0 +1,19 @@
+name: file-discipline
+title_tr: Dosya disiplini
+title_en: File discipline
+description: How to read, create and change files safely and precisely.
+triggers:
+- file
+- edit
+- dosya
+- düzenle
+- refactor
+- change
+- değiştir
+roles:
+- developer
+- debugger
+- tester
+- merger
+priority: 90
+always: true

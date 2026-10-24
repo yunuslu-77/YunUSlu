@@ -1,0 +1,16 @@
+name: api-design
+title_tr: API tasarımı ve belgeleme
+title_en: API design and documentation
+description: Design consistent, versioned, documented HTTP APIs.
+triggers:
+- api design
+- rest
+- openapi
+- swagger
+- endpoint
+- uç nokta
+- graphql
+- webhook
+- pagination
+roles: []
+priority: 50

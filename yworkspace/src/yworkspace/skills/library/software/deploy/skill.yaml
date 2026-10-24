@@ -1,0 +1,25 @@
+name: deploy
+title_tr: Yayına alma
+title_en: Deployment
+description: Ship the app to a VPS or a platform with HTTPS, secrets and a rollback
+  plan.
+triggers:
+- deploy
+- yayın
+- yayına al
+- vps
+- server
+- sunucu
+- vercel
+- railway
+- render
+- fly.io
+- netlify
+- cloudflare
+- domain
+- ssl
+- https
+- production
+- canlı
+roles: []
+priority: 55

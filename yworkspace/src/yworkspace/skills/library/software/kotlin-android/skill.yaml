@@ -1,0 +1,16 @@
+name: kotlin-android
+title_tr: Kotlin + Android (Compose)
+title_en: Kotlin + Android (Compose)
+description: Build modern Android apps with Kotlin, Jetpack Compose and MVVM.
+triggers:
+- kotlin
+- android
+- jetpack compose
+- compose
+- gradle
+- room
+- hilt
+- apk
+- androidmanifest
+roles: []
+priority: 60

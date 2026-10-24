@@ -1,0 +1,14 @@
+name: node-api
+title_tr: Node.js API (Express/NestJS)
+title_en: Node.js API (Express/NestJS)
+description: Build typed, validated Node.js APIs.
+triggers:
+- node
+- express
+- nestjs
+- fastify
+- typescript api
+- rest api
+- prisma
+roles: []
+priority: 55

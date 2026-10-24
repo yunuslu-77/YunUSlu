@@ -1,0 +1,10 @@
+- Injection: parameterized queries/ORM only; never build SQL, shell commands or file paths from raw input.
+- XSS: rely on framework escaping; sanitize any HTML you must render (DOMPurify/bleach); set a CSP.
+- CSRF: framework protection for cookie-based sessions; SameSite cookies.
+- Broken access control (the #1 issue): check ownership/tenant on every read and write.
+- SSRF: never fetch user-supplied URLs server-side without an allow-list.
+- Uploads: check type and size, store outside the web root or in object storage, random names.
+- Secrets: environment variables / secret manager; `.env` git-ignored; rotate anything that leaked.
+- Dependencies: run the audit tools (pip-audit, npm audit, osv-scanner) and update vulnerable packages.
+- Headers: HTTPS only (HSTS), X-Content-Type-Options, frame-ancestors via CSP.
+- Logs: no passwords, tokens or full card numbers; keep security events.

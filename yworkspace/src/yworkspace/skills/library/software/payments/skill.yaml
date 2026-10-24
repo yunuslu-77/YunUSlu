@@ -1,0 +1,23 @@
+name: payments
+title_tr: Ödeme ve abonelik
+title_en: Payments and subscriptions
+description: Integrate Stripe, iyzico, PayTR, Paddle or Lemon Squeezy safely, in test
+  mode first.
+triggers:
+- payment
+- ödeme
+- stripe
+- iyzico
+- paytr
+- paddle
+- lemon squeezy
+- subscription
+- abonelik
+- billing
+- fatura
+- invoice
+- checkout
+- plan
+- pricing
+roles: []
+priority: 65

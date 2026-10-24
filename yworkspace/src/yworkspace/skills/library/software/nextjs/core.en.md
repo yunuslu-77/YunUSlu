@@ -1,0 +1,8 @@
+- TypeScript strict, App Router (`app/`), Server Components by default, `"use client"` only where needed.
+- Data: Prisma or Drizzle + PostgreSQL; never query the DB from client components.
+- Mutations: Server Actions or route handlers (`app/api/.../route.ts`); validate input with zod.
+- Auth: Auth.js (NextAuth) or a proven provider; protect pages in middleware AND check ownership in actions.
+- UI: Tailwind CSS; accessible components (labels, focus states); loading.tsx and error.tsx per route.
+- Env: `.env.local` (git-ignored) + `.env.example`; only `NEXT_PUBLIC_*` reaches the browser.
+- Tests: vitest for logic, Playwright for journeys. Scripts: `dev`, `build`, `start`, `lint`, `test`.
+- Run: `npm run dev -- --hostname 0.0.0.0 --port 3000` with start_process; `npm run build` must pass.

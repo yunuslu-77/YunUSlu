@@ -1,0 +1,23 @@
+name: deep-work
+title_tr: 'Derin çalışma: sınırına kadar'
+title_en: 'Deep work: until it is truly done'
+description: Work for as long as needed, verify everything, and never stop early.
+triggers:
+- build
+- yap
+- geliştir
+- create
+- make
+- implement
+- uygula
+- saas
+- app
+- uygulama
+roles:
+- developer
+- debugger
+- tester
+- test_user
+- director
+priority: 95
+always: true

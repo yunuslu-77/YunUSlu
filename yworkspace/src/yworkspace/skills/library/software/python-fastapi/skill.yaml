@@ -1,0 +1,14 @@
+name: python-fastapi
+title_tr: Python + FastAPI
+title_en: Python + FastAPI
+description: Build reliable FastAPI backends with SQLAlchemy, Alembic and pytest.
+triggers:
+- fastapi
+- python api
+- pydantic
+- sqlalchemy
+- alembic
+- uvicorn
+- starlette
+roles: []
+priority: 60

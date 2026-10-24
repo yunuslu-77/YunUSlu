@@ -1,0 +1,8 @@
+- Structure by feature: `lib/features/<feature>/{data,domain,presentation}`, shared code in `lib/core`.
+- State: Riverpod (or Bloc) - pick one and use it everywhere. No business logic inside widgets.
+- Networking: `dio` or `http` with a typed API client; JSON via `json_serializable` or `freezed`.
+- Secrets never in the app; the app talks to your backend. Store tokens in `flutter_secure_storage`.
+- Every screen: loading, empty, error, content. Use `Semantics` labels; support text scaling.
+- Localization: `flutter_localizations` + ARB files (tr, en) from the start.
+- Tests: `flutter test` (unit + widget tests); `integration_test` for journeys.
+- Builds: `flutter build apk --release` / `appbundle` (Android), `flutter build ipa` (needs a Mac).

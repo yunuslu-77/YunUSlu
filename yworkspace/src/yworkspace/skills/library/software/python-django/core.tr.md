@@ -1,0 +1,8 @@
+- Her özellik için bir Django uygulaması. İlk günden özel kullanıcı modeli (`AUTH_USER_MODEL`).
+- Özel ekranlar yapmadan önce arka ofis ihtiyaçları için admin'i kullan.
+- Girdiyi formlar/serializer'lar doğrular; view'lar ince kalır; iş kuralları model metotlarında ya da servislerde.
+- Her model değişikliğinde `makemigrations` + `migrate`; taşımaları commit et.
+- Güvenlik: CSRF açık, `ALLOWED_HOSTS`, üretim için `SECURE_*` ayarları, gizli bilgiler ortam değişkeninden.
+- Basit etkileşim için şablonlar + HTMX; ayrı bir ön yüz ya da mobil uygulama API isterse DRF.
+- Testler: `pytest-django`, `client.login`, veri için factory_boy.
+- Çalıştırma: start_process ile `python manage.py runserver 0.0.0.0:8000`.

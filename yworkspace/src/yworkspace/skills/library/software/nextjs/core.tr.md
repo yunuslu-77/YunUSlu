@@ -1,0 +1,8 @@
+- Katı TypeScript, App Router (`app/`), varsayılan olarak Server Component, `"use client"` yalnızca gerektiğinde.
+- Veri: Prisma ya da Drizzle + PostgreSQL; istemci bileşenlerinden veritabanına asla sorgu atma.
+- Değişiklikler: Server Action'lar ya da route handler'lar (`app/api/.../route.ts`); girdiyi zod ile doğrula.
+- Kimlik: Auth.js (NextAuth) ya da kanıtlanmış bir sağlayıcı; sayfaları middleware'de koru VE action'larda sahipliği kontrol et.
+- Arayüz: Tailwind CSS; erişilebilir bileşenler (etiketler, odak durumları); her rotada loading.tsx ve error.tsx.
+- Ortam: `.env.local` (git'e girmez) + `.env.example`; tarayıcıya yalnızca `NEXT_PUBLIC_*` ulaşır.
+- Testler: mantık için vitest, yolculuklar için Playwright. Betikler: `dev`, `build`, `start`, `lint`, `test`.
+- Çalıştırma: start_process ile `npm run dev -- --hostname 0.0.0.0 --port 3000`; `npm run build` geçmeli.

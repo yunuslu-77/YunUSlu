@@ -1,0 +1,22 @@
+name: devops
+title_tr: 'DevOps: Docker, CI, izleme'
+title_en: 'DevOps: Docker, CI, monitoring'
+description: Containerize, automate checks, and make the app observable and backed
+  up.
+triggers:
+- docker
+- dockerfile
+- docker compose
+- ci
+- github actions
+- pipeline
+- monitoring
+- izleme
+- logging
+- backup
+- yedek
+- sentry
+- health check
+- kubernetes
+roles: []
+priority: 50

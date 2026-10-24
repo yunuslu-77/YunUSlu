@@ -1,0 +1,16 @@
+name: spec-writing
+title_tr: Gereksinim analizi ve SPEC
+title_en: Requirements and specification
+description: Write a precise, testable specification before building.
+triggers:
+- spec
+- requirements
+- gereksinim
+- istek
+- özellik
+- feature
+- mvp
+- user story
+roles:
+- analyst
+priority: 80

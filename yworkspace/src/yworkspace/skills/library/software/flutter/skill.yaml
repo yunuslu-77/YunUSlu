@@ -1,0 +1,16 @@
+name: flutter
+title_tr: Flutter mobil uygulama
+title_en: Flutter mobile app
+description: Build Flutter apps with clean state management, API access and tests.
+triggers:
+- flutter
+- dart
+- pubspec
+- widget
+- riverpod
+- bloc
+- ios app
+- android app
+- mobil uygulama
+roles: []
+priority: 60

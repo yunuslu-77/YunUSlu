@@ -1,0 +1,7 @@
+- Katı TypeScript. Her istek gövdesini/sorgusunu zod (Express/Fastify) ya da class-validator (NestJS) ile doğrula.
+- Yapı: ince route/controller'lar → servisler (iş kuralları) → repository'ler (veritabanı).
+- Doğru durum kodlarıyla `{ error: { code, message } }` döndüren merkezi hata işleyici.
+- Güvenlik ara katmanları: helmet, CORS izin listesi, kimlik uç noktalarında hız sınırı, gövde boyutu sınırı.
+- Şema değişiklikleri için Prisma taşımaları; SQL'i asla metin birleştirerek kurma.
+- Testler: geçici ya da bellekte veritabanına karşı vitest/jest + supertest.
+- SIGTERM'de düzgün kapanma; sağlık uç noktası `/health`.

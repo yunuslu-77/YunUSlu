@@ -1,0 +1,22 @@
+name: database
+title_tr: Veritabanı tasarımı
+title_en: Database design
+description: Design schemas, migrations and queries that stay correct and fast.
+triggers:
+- database
+- veritabanı
+- postgres
+- postgresql
+- mysql
+- sqlite
+- schema
+- şema
+- migration
+- taşıma
+- sql
+- index
+- mongodb
+- redis
+- orm
+roles: []
+priority: 55

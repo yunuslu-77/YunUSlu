@@ -1,0 +1,10 @@
+- Enjeksiyon: yalnızca parametreli sorgu/ORM; SQL'i, kabuk komutlarını ya da dosya yollarını asla ham girdiden kurma.
+- XSS: çerçevenin kaçışına güven; göstermek zorunda olduğun HTML'i temizle (DOMPurify/bleach); CSP ayarla.
+- CSRF: çerez tabanlı oturumlar için çerçeve koruması; SameSite çerezler.
+- Bozuk erişim kontrolü (1 numaralı sorun): her okuma ve yazmada sahipliği/kiracıyı kontrol et.
+- SSRF: kullanıcının verdiği URL'leri izin listesi olmadan sunucu tarafında asla çekme.
+- Yüklemeler: tür ve boyutu kontrol et, web kökünün dışında ya da nesne depolamada sakla, rastgele isimler ver.
+- Gizli bilgiler: ortam değişkenleri / gizli bilgi yöneticisi; `.env` git'e girmez; sızan her şeyi değiştir.
+- Bağımlılıklar: denetim araçlarını çalıştır (pip-audit, npm audit, osv-scanner) ve açıklı paketleri güncelle.
+- Başlıklar: yalnızca HTTPS (HSTS), X-Content-Type-Options, CSP ile frame-ancestors.
+- Günlükler: parola, token ya da tam kart numarası yok; güvenlik olaylarını tut.

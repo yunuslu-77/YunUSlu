@@ -1,0 +1,9 @@
+- Özel kriptografi yerine kanıtlanmış bir kütüphane/sağlayıcı tercih et (Auth.js, Django auth, FastAPI-Users, Supabase/Keycloak).
+- Parolalar: argon2id/bcrypt, en az 8+ karakter, yaygın parola listelerine karşı kontrol, asla günlüğe yazılmaz.
+- E-posta doğrulama ve parola sıfırlama: tek kullanımlık, süresi dolan, özeti alınmış token'larla.
+- Oturumlar: HttpOnly + Secure + SameSite çerezler; ya da kısa ömürlü erişim JWT'si + dönen yenileme token'ı.
+- Giriş, kayıt ve sıfırlama uç noktalarında hız sınırı; "bilinmeyen e-posta" ve "yanlış parola" için aynı yanıt.
+- HER istekte yetkilendirme: kullanıcının BU nesne üzerinde işlem yapabildiğini (sahiplik/kiracı) kontrol et, sadece "giriş yapmış" değil.
+- Roller ve izinler tek yerde (politika fonksiyonları); ekipler/davetler süresi dolan davet token'larıyla.
+- Yöneticiler için isteğe bağlı 2FA (TOTP). Güvenlik olaylarını kaydet (giriş, parola değişikliği, rol değişikliği).
+- Testler: A kullanıcısı B kullanıcısının verisini okuyamaz/değiştiremez - her kaynak için.

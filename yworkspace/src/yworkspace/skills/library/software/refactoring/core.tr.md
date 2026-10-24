@@ -1,0 +1,5 @@
+- Yeniden düzenleme yapıyı değiştirir, davranışı asla. Testler her adımdan önce ve sonra geçmeli.
+- Küçük ve isimli adımlar: fonksiyon çıkar, yeniden adlandır, taşı, satıra al, tekrarı kaldır - her seferinde bir tane.
+- Yeniden adlandırmadan önce `search` ile tüm kullanımları bul; hepsini aynı adımda güncelle.
+- Aynı görevde yeniden düzenlemeyi yeni özelliklerle karıştırma.
+- Kod eldeki iş için yeterince açık olunca dur; gereksiz cilalama yapma.

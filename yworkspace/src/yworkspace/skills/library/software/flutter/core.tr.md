@@ -1,0 +1,8 @@
+- Özelliğe göre yapı: `lib/features/<özellik>/{data,domain,presentation}`, ortak kod `lib/core` içinde.
+- Durum yönetimi: Riverpod (ya da Bloc) - birini seç ve her yerde onu kullan. Widget'ların içinde iş mantığı olmasın.
+- Ağ: tipli bir API istemcisiyle `dio` ya da `http`; JSON için `json_serializable` ya da `freezed`.
+- Gizli bilgiler asla uygulamada olmaz; uygulama kendi sunucunla konuşur. Token'ları `flutter_secure_storage` içinde sakla.
+- Her ekran: yükleniyor, boş, hata, içerik. `Semantics` etiketleri kullan; metin büyütmeyi destekle.
+- Yerelleştirme: baştan `flutter_localizations` + ARB dosyaları (tr, en).
+- Testler: `flutter test` (birim + widget testleri); yolculuklar için `integration_test`.
+- Derleme: `flutter build apk --release` / `appbundle` (Android), `flutter build ipa` (Mac gerekir).

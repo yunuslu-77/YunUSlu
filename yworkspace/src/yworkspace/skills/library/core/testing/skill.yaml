@@ -1,0 +1,19 @@
+name: testing
+title_tr: Test yazma ve strateji
+title_en: Testing strategy
+description: Write tests that prove behaviour and catch regressions.
+triggers:
+- test
+- tests
+- pytest
+- jest
+- vitest
+- unit test
+- e2e
+- playwright
+- coverage
+- kapsam
+roles:
+- tester
+- developer
+priority: 70

@@ -1,0 +1,7 @@
+- Kotlin + Jetpack Compose + Material 3; MVVM: Composable → ViewModel (StateFlow) → Repository → veri kaynakları.
+- Bağımlılık enjeksiyonu Hilt; kalıcılık Room; ağ Retrofit/Ktor + kotlinx.serialization.
+- Coroutine'ler: viewModelScope, ana iş parçacığını asla bloklama; iptali yönet.
+- İzinler, gerektikleri anda gerekçesiyle istenir; "reddedildi" durumu ele alınır.
+- Metinler `res/values/strings.xml` ve `values-tr/strings.xml` içinde; simgelere içerik açıklaması.
+- Testler: JUnit + akışlar için Turbine, Compose arayüz testleri; `./gradlew test` ve `./gradlew lint` çalıştır.
+- Derleme: release keystore ile `./gradlew assembleRelease` (APK), `bundleRelease` (AAB) (keystore'u asla commit etme).

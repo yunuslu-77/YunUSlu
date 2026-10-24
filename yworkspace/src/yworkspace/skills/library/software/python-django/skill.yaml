@@ -1,0 +1,12 @@
+name: python-django
+title_tr: Python + Django
+title_en: Python + Django
+description: Build Django apps with clean models, admin, forms and tests.
+triggers:
+- django
+- drf
+- django rest framework
+- htmx
+- manage.py
+roles: []
+priority: 60

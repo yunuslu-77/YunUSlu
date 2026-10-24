@@ -1,0 +1,21 @@
+name: react-frontend
+title_tr: React ve arayüz kalitesi
+title_en: React and UI quality
+description: Build accessible, responsive, consistent user interfaces.
+triggers:
+- react
+- frontend
+- arayüz
+- ui
+- ux
+- tailwind
+- css
+- responsive
+- mobil uyumlu
+- vue
+- svelte
+- form
+- tasarım
+- design
+roles: []
+priority: 55

@@ -1,0 +1,16 @@
+name: architecture
+title_tr: Mimari ve teknoloji seçimi
+title_en: Architecture and stack choice
+description: Choose a boring, proven stack and a simple structure that fits the product.
+triggers:
+- architecture
+- mimari
+- stack
+- teknoloji
+- framework
+- monolith
+- microservice
+- structure
+roles:
+- architect
+priority: 75
