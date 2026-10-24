@@ -49,7 +49,7 @@ yWorkspace bu üçünü birden çözer:
 | Skill kapsamı | **Her alan.** Yazılım ve SaaS çekirdektir, pazarlama, iş, belge, eğitim ve araştırma da dahil |
 | Skill dili | **Türkçe + İngilizce**, her yapay zekâ için ayrı ayar |
 | Geliştirme yeri | Bu depoda, `yworkspace/` klasörü |
-| Lisans | ⚠️ **Karar bekliyor**, bkz. bölüm 14 |
+| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 14 |
 
 ---
 
@@ -449,24 +449,17 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 14. Lisans — ⚠️ Karar bekliyor
+## 14. Lisans — ✅ Karar verildi
 
-**İstenen:** Herkes kullanabilsin, **hiçbir şirket yararlanamasın**, herkes katkı ekleyebilsin ama katkısını Yunus Emre USLU'ya bildirsin.
+Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
-**Önemli not:** Şirketlerin kullanımını yasaklayan bir lisans, resmi tanımıyla "açık kaynak" (OSI onaylı) sayılmaz. Doğru adı **"kaynağı açık" (source-available)** olur. Kod yine herkese açık olur, yalnızca terim farkı var.
-
-**Öneri:**
-- **Kod:** PolyForm Noncommercial 1.0.0. Bireyler, öğrenciler, araştırmacılar ve kâr amacı gütmeyen kurumlar serbestçe kullanır. Ticari kullanım yasaktır.
-- **Skill'ler ve belgeler:** CC BY-NC-SA 4.0. Ticari olmayan kullanım serbesttir, kaynak gösterilmeli ve değişiklikler aynı lisansla paylaşılmalıdır.
-- **Katkılar:** Katkılar bu depoya pull request olarak gelir, böylece her katkıdan haberin olur. Bir katkıcı lisans sözleşmesi (CLA) ile katkı yapanlar haklarını YunUSlu'ya devreder. Bu sayede ileride lisansı değiştirme ya da şirketlere ayrı **ücretli ticari lisans** verme hakkın korunur.
-- **Ek ticari lisans (isteğe bağlı):** Bir şirket kullanmak isterse seninle iletişime geçip ayrı lisans alabilir. Bu YunUSlu için bir gelir kaynağı da olabilir.
-
-**Netleşmesi gereken konular:**
-1. yWorkspace ile **yapılan projeler** kimin? Öneri: Tamamen kullanıcının. Lisans sadece yWorkspace'in kendisini kapsar.
-2. Bir **birey** yWorkspace ile yaptığı SaaS'ı satıp para kazanabilir mi? PolyForm Noncommercial bunu yasaklayabilir. İzin vermek istiyorsan özel bir ek madde gerekir.
-3. "Değişiklik yapan bana bildirsin" kuralı, depo dışındaki kopyalar (fork) için de geçerli olsun mu?
-
-> Bu bölüm hukuki tavsiye değildir. Son karar öncesinde bir avukata danışmak önerilir.
+- **Kod:** PolyForm Noncommercial 1.0.0. Bireyler ve kâr amacı gütmeyen kurumlar serbestçe kullanır, şirketler kullanamaz.
+- **Skill'ler ve belgeler:** CC BY-NC-SA 4.0.
+- **Ek izin:** Bireyler yWorkspace'i kendi ticari işleri için de kullanabilir (ör. kendi SaaS'ını yapıp satmak). Yazılımın kendisini satmak ya da şirketlere sunmak hariç.
+- **Üretilen işler:** yWorkspace ile yapılan projeler tamamen kullanıcının.
+- **Katkılar:** Pull request ile gelir, her katkıdan haberdar olunur. Fork yapanlardan haber vermeleri rica edilir.
+- **Ticari lisans:** Şirketler ayrı ücretli lisans alabilir.
+- Bu yazılım resmi tanımıyla "açık kaynak" değil, **kaynağı açık** (source-available) yazılımdır.
 
 ---
 
@@ -530,7 +523,6 @@ Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 
 ## 18. Açık sorular
 
-1. **Lisans:** Bölüm 14'teki üç soru.
-2. **Test için API anahtarları:** Aşama 3'te DeepSeek ve Gemini için gerçek anahtarlar gerekecek.
-3. **Logo ve tasarım:** yWorkspace ikonu, diğer y-uygulamalarının mavi tasarım diliyle mi olsun?
-4. **Var olan uygulamalar:** 20 YunUSlu uygulamasının kodu geldiğinde yWorkspace ile ilişkisi (ör. yWorkspace'in ilk gerçek test projeleri olabilirler).
+1. **Test için API anahtarları:** Aşama 3'te DeepSeek ve Gemini için gerçek anahtarlar gerekecek.
+2. **Logo ve tasarım:** yWorkspace ikonu, diğer y-uygulamalarının mavi tasarım diliyle mi olsun?
+3. **Var olan uygulamalar:** 20 YunUSlu uygulamasının kodu geldiğinde yWorkspace ile ilişkisi (ör. yWorkspace'in ilk gerçek test projeleri olabilirler).
