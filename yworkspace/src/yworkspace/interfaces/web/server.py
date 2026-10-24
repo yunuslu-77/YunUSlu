@@ -291,6 +291,36 @@ def create_app(cfg: Config | None = None, token: str | None = None, session_fact
         return StreamingResponse(stream(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
+    @app.get("/api/setup", dependencies=[Depends(auth)])
+    def setup_status():
+        from ...setup.wizard import Wizard
+        w = Wizard(cfg)
+        return {"system": w.ctx.info.describe(), "steps": w.status()}
+
+    @app.post("/api/setup/{step_id}", dependencies=[Depends(auth)])
+    def setup_step(step_id: str, answers: dict = Body(default={}), run: bool = Body(default=False)):
+        from ...setup.wizard import STEPS, Wizard
+        if step_id not in {s.id for s in STEPS}:
+            raise HTTPException(404, "No such step.")
+        w = Wizard(cfg)
+        w.ctx.answers.update(answers or {})
+        actions = w.plan(step_id)
+        plan = [{"describe": a.describe, "command": a.command if isinstance(a.command, str) else
+                 " ".join(a.command or []), "manual": a.manual, "admin": a.admin} for a in actions]
+        if not run:
+            return {"plan": plan}
+        results = []
+        for a in actions:
+            if a.admin:
+                results.append("ADMIN: run this in a terminal with administrator rights: " + plan[actions.index(a)]["command"])
+                continue
+            try:
+                results.append(w.run_action(a))
+            except Exception as e:
+                results.append(f"FAILED: {e}")
+                break
+        return {"plan": plan, "results": results, "ok": next(s for s in STEPS if s.id == step_id).check(w.ctx).ok}
+
     @app.get("/api/pair", dependencies=[Depends(auth)])
     def pair(request: Request):
         """Data for pairing the Android remote (QR code contents)."""

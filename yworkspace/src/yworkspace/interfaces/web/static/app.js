@@ -14,7 +14,7 @@ const T = {
     project_name: "Proje adı:", pick_project: "Önce bir proje seç ya da oluştur.", no_tasks: "Henüz görev yok",
     a_spec: "Proje tanımını onaylıyor musun?", a_plan: "Planı onaylıyor musun?", a_tool: "Bu işleme izin var mı?",
     a_question: "Yapay zekâ bir şey soruyor", a_deploy: "Yayına alayım mı?", saved: "Kaydedildi",
-    started: "Başladı", finished: "Bitti ✓", not_finished: "Bitmedi", key_saved: "Anahtar kaydedildi" },
+    started: "Başladı", finished: "Bitti ✓", setup: "Kurulum", apply: "Uygula", not_finished: "Bitmedi", key_saved: "Anahtar kaydedildi" },
   en: { simple: "Simple", detailed: "Detailed", settings: "Settings", projects: "Projects", new: "+ New",
     goal_ph: "What shall we build? e.g. An appointment system for hair salons", aut_steps: "Approve every step",
     aut_milestones: "Approve milestones", aut_auto: "Fully automatic", q_economy: "Economy", q_balanced: "Balanced",
@@ -25,7 +25,7 @@ const T = {
     reject: "Reject", change: "Change", feedback_ph: "What should change? (optional)", project_name: "Project name:",
     pick_project: "Pick or create a project first.", no_tasks: "No tasks yet", a_spec: "Approve the specification?",
     a_plan: "Approve the plan?", a_tool: "Allow this action?", a_question: "The AI has a question",
-    a_deploy: "Deploy now?", saved: "Saved", started: "Started", finished: "Done ✓", not_finished: "Not finished",
+    a_deploy: "Deploy now?", saved: "Saved", started: "Started", finished: "Done ✓", setup: "Setup", apply: "Apply", not_finished: "Not finished",
     key_saved: "Key saved" },
 };
 const t = (k) => (T[state.lang] && T[state.lang][k]) || T.en[k] || k;
@@ -175,6 +175,31 @@ async function openSettings() {
   sel.value = state.config.model; $("#setBudget").value = state.config.budget_usd;
   $("#setSandbox").value = state.config.sandbox; $("#setDir").value = state.config.projects_dir;
   $("#settings").showModal();
+  loadSetup();
+}
+
+async function loadSetup() {
+  const s = await api("/api/setup");
+  $("#sysInfo").textContent = s.system;
+  const ul = $("#setupSteps"); ul.innerHTML = "";
+  for (const st of s.steps) {
+    const li = document.createElement("li");
+    li.className = st.ok ? "done" : (st.skipped ? "todo" : "blocked");
+    li.textContent = `${state.lang === "tr" ? st.title_tr : st.title_en} ${st.detail ? "— " + st.detail : ""} `;
+    if (!st.ok) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "small"; b.textContent = t("apply");
+      b.onclick = async () => {
+        const out = $("#setupOut"); out.hidden = false;
+        const plan = await api(`/api/setup/${st.id}`, { method: "POST", body: JSON.stringify({ run: false }) });
+        out.textContent = plan.plan.map((a) => `• ${a.describe}${a.command ? "\n  $ " + a.command : ""}${a.manual ? "\n  " + a.manual : ""}`).join("\n");
+        const res = await api(`/api/setup/${st.id}`, { method: "POST", body: JSON.stringify({ run: true }) });
+        out.textContent += "\n\n" + (res.results || []).join("\n");
+        loadSetup(); loadStatus();
+      };
+      li.appendChild(b);
+    }
+    ul.appendChild(li);
+  }
 }
 
 function wire() {

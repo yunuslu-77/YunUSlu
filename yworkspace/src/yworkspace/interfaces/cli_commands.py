@@ -117,3 +117,70 @@ def web_command(sub, cfg) -> None:
         serve(cfg, "0.0.0.0" if a.lan else "127.0.0.1", a.port, not a.no_browser)
         return 0
     s.set_defaults(fn=run)
+
+
+@command
+def setup_command(sub, cfg) -> None:
+    s = sub.add_parser("setup", help="kurulum sihirbazı / setup wizard")
+    s.add_argument("--status", action="store_true", help="only show the status of each step")
+    s.add_argument("--yes", action="store_true", help="run every automatic action without asking")
+
+    def run(a, cfg) -> int:
+        import getpass
+
+        from ..setup.wizard import STEPS, Wizard
+        if not a.status and not a.yes and sys.stdin.isatty():
+            lang = input("Dil / Language [tr/en] (tr): ").strip().lower() or "tr"
+            cfg.lang = "en" if lang.startswith("e") else "tr"
+            cfg.save()
+        w = Wizard(cfg)
+        tr = cfg.lang == "tr"
+        print(("Bilgisayarınız: " if tr else "Your computer: ") + w.ctx.info.describe())
+        for item in w.status():
+            mark = "✓" if item["ok"] else ("–" if item["skipped"] else "✗")
+            print(f"{mark} {item['title_tr' if tr else 'title_en']}: {item['detail']}")
+        if a.status:
+            return 0
+        for step in STEPS:
+            st = step.check(w.ctx)
+            if st.ok or w.done.get(step.id) == "skipped":
+                continue
+            title = step.title_tr if tr else step.title_en
+            print(f"\n=== {title} ===")
+            if step.id == "model" and not a.yes:
+                choice = input("Model [deepseek-chat / gemini-flash / claude-opus / ollama] "
+                               f"({cfg.model}): ").strip() or cfg.model
+                cfg.model = choice
+                cfg.save()
+                from ..models.profiles import get_profile
+                prof = get_profile(choice)
+                if prof.key_env and not prof.local:
+                    w.ctx.answers[prof.key_env] = getpass.getpass(f"{prof.key_env}: ").strip()
+            if step.id == "folder" and not a.yes:
+                w.ctx.answers["projects_dir"] = input(f"Klasör / folder ({cfg.projects_dir}): ").strip() or None
+            actions = w.plan(step.id)
+            for act in actions:
+                cmd = act.command if isinstance(act.command, str) else " ".join(act.command or [])
+                print(f"- {act.describe}" + (f"\n    $ {cmd}" if cmd else "") + (f"\n    {act.manual}" if act.manual else ""))
+            if a.yes:
+                ans = "e"
+            else:
+                ans = input("Uygulansın mı? [E/h/atla] " if tr else "Apply? [Y/n/skip] ").strip().lower()
+            if ans in ("atla", "skip", "s"):
+                w.mark(step.id, "skipped")
+                continue
+            if ans in ("h", "n", "no", "hayır"):
+                continue
+            for act in actions:
+                try:
+                    out = w.run_action(act)
+                    print("  " + out.strip().replace("\n", "\n  ")[-2000:])
+                    if "REBOOT REQUIRED" in out:
+                        return 0
+                except Exception as e:
+                    print(f"  ✗ {e}")
+                    break
+            w.mark(step.id, step.check(w.ctx).ok)
+        print("\n" + ("Kurulum tamam. Başlamak için: yw web" if tr else "Setup finished. To start: yw web"))
+        return 0
+    s.set_defaults(fn=run)

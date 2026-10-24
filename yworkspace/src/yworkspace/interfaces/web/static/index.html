@@ -104,6 +104,8 @@
       <fieldset><legend data-i18n="api_key">API anahtarı ekle</legend>
         <input id="keyName" placeholder="DEEPSEEK_API_KEY"><input id="keyValue" type="password" placeholder="sk-…">
         <button id="saveKey" type="button" class="small" data-i18n="save">Kaydet</button></fieldset>
+      <fieldset class="setup"><legend data-i18n="setup">Kurulum</legend>
+        <div id="sysInfo" class="muted"></div><ul id="setupSteps" class="tasks"></ul><pre id="setupOut" hidden></pre></fieldset>
       <menu><button value="cancel" class="ghost" data-i18n="close">Kapat</button>
         <button id="saveSettings" value="ok" class="primary" data-i18n="save">Kaydet</button></menu>
     </form>

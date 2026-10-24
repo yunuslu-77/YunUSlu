@@ -1,0 +1,58 @@
+name: yWorkspace installers
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["yworkspace-v*"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux is built on the oldest supported glibc so the package also runs on older distributions.
+          - { os: ubuntu-22.04, kind: linux }
+          - { os: windows-latest, kind: windows }
+          - { os: macos-latest, kind: macos }   # Apple Silicon
+          - { os: macos-13, kind: macos }       # Intel
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: yworkspace
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[web,claude,mcp]" pyinstaller
+      - name: Linux (.deb + AppImage)
+        if: matrix.kind == 'linux'
+        run: |
+          bash installer/linux/build_deb.sh
+          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -O /usr/local/bin/appimagetool || true
+          chmod +x /usr/local/bin/appimagetool && APPIMAGE_EXTRACT_AND_RUN=1 bash installer/linux/build_appimage.sh || echo "AppImage step skipped"
+      - name: Windows (setup.exe)
+        if: matrix.kind == 'windows'
+        run: |
+          pyinstaller --noconfirm installer/yworkspace.spec
+          choco install innosetup -y --no-progress
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\windows\yworkspace.iss
+        shell: pwsh
+      - name: macOS (.dmg)
+        if: matrix.kind == 'macos'
+        run: bash installer/macos/build_dmg.sh
+      - name: Smoke test the build
+        shell: bash
+        run: |
+          if [ -x dist/yworkspace/yworkspace ]; then dist/yworkspace/yworkspace --version; fi
+          if [ -x dist/yworkspace/yworkspace.exe ]; then dist/yworkspace/yworkspace.exe --version; fi
+          if [ -d dist/yWorkspace.app ]; then dist/yWorkspace.app/Contents/MacOS/yworkspace --version; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yworkspace-${{ matrix.os }}
+          path: |
+            yworkspace/dist/*.deb
+            yworkspace/dist/*.AppImage
+            yworkspace/dist/*.exe
+            yworkspace/dist/*.dmg
