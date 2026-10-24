@@ -103,3 +103,17 @@ def bridge_commands(sub, cfg) -> None:
             return 1
         return 0
     s.set_defaults(fn=desk)
+
+
+@command
+def web_command(sub, cfg) -> None:
+    s = sub.add_parser("web", help="web arayüzünü aç / open the web interface")
+    s.add_argument("--port", type=int, default=8700)
+    s.add_argument("--lan", action="store_true", help="telefondan erişim için yerel ağa aç / allow phones on your Wi-Fi")
+    s.add_argument("--no-browser", action="store_true")
+
+    def run(a, cfg) -> int:
+        from .web.server import serve
+        serve(cfg, "0.0.0.0" if a.lan else "127.0.0.1", a.port, not a.no_browser)
+        return 0
+    s.set_defaults(fn=run)

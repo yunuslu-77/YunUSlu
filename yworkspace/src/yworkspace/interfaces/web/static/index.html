@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>yWorkspace</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo">y</span><strong>yWorkspace</strong></div>
+    <div class="top-actions">
+      <div class="seg" role="group" aria-label="view">
+        <button id="viewSimple" class="on" data-i18n="simple">Basit</button>
+        <button id="viewDetailed" data-i18n="detailed">Detaylı</button>
+      </div>
+      <button id="langBtn" class="ghost" aria-label="language">EN</button>
+      <button id="themeBtn" class="ghost" aria-label="theme">☾</button>
+      <button id="settingsBtn" class="ghost" data-i18n="settings">Ayarlar</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="side">
+      <div class="side-head">
+        <h2 data-i18n="projects">Projeler</h2>
+        <button id="newProject" class="small" data-i18n="new">+ Yeni</button>
+      </div>
+      <ul id="projectList" class="plist"></ul>
+      <div id="health" class="health"></div>
+    </aside>
+
+    <main class="main">
+      <section class="composer">
+        <textarea id="goal" rows="3" data-i18n-ph="goal_ph" placeholder="Ne yapalım? Örn: Kuaförler için randevu sistemi yap"></textarea>
+        <div class="composer-row">
+          <select id="autonomy" aria-label="autonomy">
+            <option value="steps" data-i18n="aut_steps">Her adımda onay</option>
+            <option value="milestones" data-i18n="aut_milestones">Önemli aşamalarda onay</option>
+            <option value="auto" data-i18n="aut_auto">Tamamen otomatik</option>
+          </select>
+          <select id="quality" aria-label="quality">
+            <option value="economy" data-i18n="q_economy">Ekonomik</option>
+            <option value="balanced" data-i18n="q_balanced">Dengeli</option>
+            <option value="max" data-i18n="q_max">Maksimum kalite</option>
+          </select>
+          <span class="grow"></span>
+          <button id="stopBtn" class="danger" hidden data-i18n="stop">Durdur</button>
+          <button id="runBtn" class="primary" data-i18n="start">Başlat</button>
+        </div>
+      </section>
+
+      <section class="progress-card">
+        <div class="progress-head">
+          <span id="phase" class="pill">—</span>
+          <span id="summary" class="muted"></span>
+          <span class="grow"></span>
+          <span id="cost" class="muted"></span>
+        </div>
+        <div class="bar"><div id="barFill"></div></div>
+      </section>
+
+      <div id="approvals"></div>
+
+      <section class="panels">
+        <div class="panel feed-panel">
+          <h3 data-i18n="activity">Neler oluyor</h3>
+          <ol id="feed" class="feed" aria-live="polite"></ol>
+        </div>
+        <div class="panel tasks-panel">
+          <h3 data-i18n="tasks">Görevler</h3>
+          <ul id="tasks" class="tasks"></ul>
+          <h3 data-i18n="journeys">Kullanıcı yolculukları</h3>
+          <ul id="journeys" class="tasks"></ul>
+        </div>
+        <div class="panel detailed-only">
+          <div class="tabs">
+            <button class="tab on" data-tab="files" data-i18n="files">Dosyalar</button>
+            <button class="tab" data-tab="diff" data-i18n="changes">Değişiklikler</button>
+            <button class="tab" data-tab="spec">SPEC</button>
+            <button class="tab" data-tab="log" data-i18n="log">Günlük</button>
+            <button class="tab" data-tab="preview" data-i18n="preview">Önizleme</button>
+          </div>
+          <div id="tab-files" class="tabbody"><input id="filePath" value="." aria-label="path"><pre id="fileView"></pre></div>
+          <div id="tab-diff" class="tabbody" hidden><pre id="diffView"></pre></div>
+          <div id="tab-spec" class="tabbody" hidden><pre id="specView"></pre></div>
+          <div id="tab-log" class="tabbody" hidden><pre id="logView"></pre></div>
+          <div id="tab-preview" class="tabbody" hidden>
+            <input id="previewUrl" placeholder="http://127.0.0.1:…"><iframe id="previewFrame" title="preview"></iframe>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="settings">
+    <form method="dialog" class="settings">
+      <h2 data-i18n="settings">Ayarlar</h2>
+      <label><span data-i18n="model">Model</span><select id="setModel"></select></label>
+      <label><span data-i18n="budget">Bütçe (USD)</span><input id="setBudget" type="number" step="0.5" min="0"></label>
+      <label><span data-i18n="sandbox">Komutların çalıştığı yer</span>
+        <select id="setSandbox"><option value="docker">Docker</option><option value="local" data-i18n="local">Bu bilgisayar</option></select></label>
+      <label><span data-i18n="projects_dir">Proje klasörü</span><input id="setDir"></label>
+      <fieldset><legend data-i18n="api_key">API anahtarı ekle</legend>
+        <input id="keyName" placeholder="DEEPSEEK_API_KEY"><input id="keyValue" type="password" placeholder="sk-…">
+        <button id="saveKey" type="button" class="small" data-i18n="save">Kaydet</button></fieldset>
+      <menu><button value="cancel" class="ghost" data-i18n="close">Kapat</button>
+        <button id="saveSettings" value="ok" class="primary" data-i18n="save">Kaydet</button></menu>
+    </form>
+  </dialog>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
