@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .config import Config, get_secret
@@ -23,7 +23,14 @@ class Session:
     registry: ToolRegistry
     engine: Engine | None = None
 
+    close_hooks: list = field(default_factory=list)
+
     def close(self) -> None:
+        for hook in self.close_hooks:
+            try:
+                hook()
+            except Exception:
+                pass
         stop = getattr(self.sandbox, "stop", None)
         if stop and self.config.sandbox == "local":
             stop()

@@ -80,6 +80,7 @@ class Engine:
     max_task_attempts: int = 3
     require_tests: bool = True
     extra_gates: list[Callable[[Engine], GateResult]] = field(default_factory=list)
+    pre_gate_hooks: list[Callable[[Engine], None]] = field(default_factory=list)  # e.g. walk UI journeys
     skills_for: Callable[[str, str], str] = lambda role, text: ""
     on_event: Callable[[LoopEvent], None] | None = None
     git: bool = True
@@ -475,6 +476,9 @@ class Engine:
                 reason = limit
                 break
             st.phase = "verify"
+            for hook in self.pre_gate_hooks:
+                if not self.over_limits():
+                    hook(self)
             gates = self.gates()
             if all(g.passed for g in gates):
                 st.phase = "done"
