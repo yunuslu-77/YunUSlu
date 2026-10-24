@@ -1,0 +1,18 @@
+name: markdown-tools
+version: 0.1.0
+description: Markdown helpers that run inside the sandbox.
+author: YunUSlu
+permissions: [shell]
+tools:
+  - name: headings
+    description: List the headings of a Markdown file.
+    command: grep -n '^#' $path
+    risk: exec
+    parameters:
+      path: {type: string, required: true}
+  - name: word_count
+    description: Count words in files.
+    command: wc -w $path
+    risk: exec
+    parameters:
+      path: {type: string, required: true}

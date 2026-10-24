@@ -20,6 +20,7 @@ from typing import Protocol
 from ..protocol.session import TextSession
 
 PROFILE_DIR = Path(__file__).parent / "profiles"
+EXTRA_PROFILE_DIRS: list[Path] = []  # plugins add app profiles here
 
 
 @dataclass
@@ -37,9 +38,10 @@ class AppProfile:
 
     @classmethod
     def load(cls, name: str) -> AppProfile:
-        p = PROFILE_DIR / f"{name}.json"
+        dirs = [*EXTRA_PROFILE_DIRS, PROFILE_DIR]
+        p = next((d / f"{name}.json" for d in dirs if (d / f"{name}.json").exists()), PROFILE_DIR / f"{name}.json")
         if not p.exists():
-            known = ", ".join(x.stem for x in PROFILE_DIR.glob("*.json"))
+            known = ", ".join(x.stem for d in dirs for x in d.glob("*.json"))
             raise FileNotFoundError(f"No desktop app profile {name!r}. Known: {known}")
         return cls(**json.loads(p.read_text("utf-8")))
 

@@ -216,3 +216,44 @@ def skills_command(sub, cfg) -> None:
             print(f"{len(files)} files written to {out.resolve()}")
         return 0
     s.set_defaults(fn=run)
+
+
+@command
+def plugin_commands(sub, cfg) -> None:
+    s = sub.add_parser("plugin", help="eklentiler / plugins")
+    s.add_argument("action", choices=["list", "install", "remove", "enable", "disable", "new", "catalog"])
+    s.add_argument("arg", nargs="?")
+    s.add_argument("--yes", action="store_true")
+
+    def run(a, cfg) -> int:
+        from ..sdk import loader
+        if a.action == "list":
+            items = loader.installed()
+            for m in items:
+                print(("● " if m.enabled else "○ ") + m.summary())
+            if not items:
+                print("No plugins installed.")
+        elif a.action == "install":
+            def approve(meta) -> bool:
+                print(meta.summary())
+                if meta.entry:
+                    print("  ⚠ This plugin contains Python code that runs with yWorkspace's rights. "
+                          "Install only plugins you trust.")
+                return a.yes or input("Install? [y/N] ").strip().lower() in ("y", "yes", "e", "evet")
+            m = loader.install_plugin(a.arg, approve)
+            print(f"Installed {m.name} {m.version}")
+        elif a.action == "remove":
+            loader.remove_plugin(a.arg)
+            print(f"Removed {a.arg}")
+        elif a.action in ("enable", "disable"):
+            loader.set_enabled(a.arg, a.action == "enable")
+            print(f"{a.arg}: {a.action}d")
+        elif a.action == "new":
+            d = loader.scaffold(Path.cwd(), a.arg or "my-plugin")
+            print(f"Created {d}. Edit plugin.yaml / plugin.py, then: yw plugin install {d}")
+        else:
+            cat = Path(loader.__file__).parent / "catalog.json"
+            for item in json.loads(cat.read_text("utf-8")):
+                print(f"{item['name']:24} {item['description']}  ({item['source']})")
+        return 0
+    s.set_defaults(fn=run)

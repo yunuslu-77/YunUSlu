@@ -1,0 +1,4 @@
+[
+  {"name": "markdown-tools", "description": "Markdown lint and table of contents (declarative, sandboxed).",
+   "source": "yworkspace/sdk/examples/markdown-tools", "reviewed": true}
+]

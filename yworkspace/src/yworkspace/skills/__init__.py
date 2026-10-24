@@ -18,6 +18,7 @@ from pathlib import Path
 import yaml
 
 LIBRARY = Path(__file__).parent / "library"
+EXTRA_DIRS: list[Path] = []  # plugins add their skill folders here
 MAX_CHARS = 9000
 
 
@@ -53,7 +54,7 @@ class Skill:
 
 def load_all(extra_dirs: list[Path] | None = None) -> list[Skill]:
     out = []
-    for base in [LIBRARY, *(extra_dirs or [])]:
+    for base in [LIBRARY, *EXTRA_DIRS, *(extra_dirs or [])]:
         for meta in sorted(Path(base).glob("*/*/skill.yaml")):
             d = yaml.safe_load(meta.read_text("utf-8")) or {}
             out.append(Skill(d.get("name", meta.parent.name), meta.parent.parent.name, meta.parent,
