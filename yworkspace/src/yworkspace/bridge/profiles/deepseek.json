@@ -1,0 +1,3 @@
+{"name": "DeepSeek (masaüstü)", "window_title": "(?i)deepseek", "send_keys": ["enter"], "focus_input": "click_bottom",
+ "reply_via": "copy_button", "copy_button_name": "Copy", "busy_names": ["Stop", "Durdur"], "max_chars": 50000,
+ "settle_seconds": 3.0, "notes": "Unofficial desktop wrappers differ; adjust copy_button_name if needed."}

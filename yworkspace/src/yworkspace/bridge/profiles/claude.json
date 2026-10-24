@@ -1,0 +1,3 @@
+{"name": "Claude Desktop", "window_title": "(?i)^claude", "send_keys": ["enter"], "focus_input": "click_bottom",
+ "reply_via": "copy_button", "copy_button_name": "Copy", "busy_names": ["Stop response", "Stop"], "max_chars": 50000,
+ "settle_seconds": 3.0, "notes": "Claude Desktop supports MCP: use `yw mcp-config` instead of the bridge."}

@@ -1,0 +1,3 @@
+{"name": "Generic chat app", "window_title": "(?i)chat", "send_keys": ["enter"], "focus_input": "click_bottom",
+ "reply_via": "accessibility", "copy_button_name": "Copy", "busy_names": ["Stop", "Durdur"], "max_chars": 20000,
+ "settle_seconds": 4.0, "notes": "Copy this file, change window_title and button names for a new app."}

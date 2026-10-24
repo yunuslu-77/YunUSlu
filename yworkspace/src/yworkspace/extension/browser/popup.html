@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<style>
+  body{font:14px system-ui,sans-serif;width:320px;margin:12px;color:#1b2a3a}
+  h1{font-size:16px;margin:0 0 8px;color:#2f6fe4} label{display:block;margin-top:8px;font-weight:600}
+  input,textarea{width:100%;box-sizing:border-box;padding:6px;border:1px solid #c5d3e8;border-radius:6px}
+  textarea{height:80px} button{margin-top:10px;width:100%;padding:8px;border:0;border-radius:6px;
+  background:#2f6fe4;color:#fff;font-weight:600;cursor:pointer} button.stop{background:#c0392b}
+  .note{font-size:11px;color:#5b6b7f;margin-top:8px} #status{margin-top:8px;font-size:12px}
+</style></head>
+<body>
+  <h1>yWorkspace</h1>
+  <label>Eşleşme kodu / Pairing token</label><input id="token" placeholder="yw bridge-web komutunun verdiği kod">
+  <label>Port</label><input id="port" value="8766">
+  <label>Görev / Task</label><textarea id="goal" placeholder="Ör: Todo uygulaması yap, testleriyle"></textarea>
+  <button id="start">Başlat / Start</button>
+  <button id="stop" class="stop">Durdur / Stop</button>
+  <div id="status"></div>
+  <p class="note">Eklenti yalnızca siz başlattığınızda, açık olan sohbet sekmesinde çalışır. Bazı sitelerin kullanım
+  koşulları otomasyonu yasaklayabilir; kullanmadan önce kontrol edin.</p>
+  <script src="popup.js"></script>
+</body></html>

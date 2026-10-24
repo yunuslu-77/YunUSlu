@@ -1,0 +1,38 @@
+{
+  "_note": "Best-effort selectors. Chat sites change their pages often; update a profile here when a site stops working. Each list is tried in order.",
+  "chat.deepseek.com": {
+    "input": ["textarea#chat-input", "textarea"],
+    "send": ["div[role=button][aria-disabled=false]:has(svg)"],
+    "reply": [".ds-markdown"],
+    "busy": ["div[role=button] svg rect"],
+    "maxChars": 50000
+  },
+  "gemini.google.com": {
+    "input": ["rich-textarea .ql-editor", "div[contenteditable=true]"],
+    "send": ["button.send-button", "button[aria-label*='Send']", "button[aria-label*='Gönder']"],
+    "reply": ["message-content", ".model-response-text"],
+    "busy": ["button[aria-label*='Stop']", "button[aria-label*='Durdur']"],
+    "maxChars": 30000
+  },
+  "chatgpt.com": {
+    "input": ["#prompt-textarea", "div[contenteditable=true]"],
+    "send": ["button[data-testid=send-button]"],
+    "reply": ["div[data-message-author-role=assistant]"],
+    "busy": ["button[data-testid=stop-button]"],
+    "maxChars": 30000
+  },
+  "claude.ai": {
+    "input": ["div.ProseMirror[contenteditable=true]", "div[contenteditable=true]"],
+    "send": ["button[aria-label='Send message']", "button[aria-label*='Send']"],
+    "reply": ["div.font-claude-response", "[data-is-streaming] .grid-cols-1"],
+    "busy": ["[data-is-streaming=true]", "button[aria-label='Stop response']"],
+    "maxChars": 50000
+  },
+  "_default": {
+    "input": ["textarea", "div[contenteditable=true]"],
+    "send": ["button[type=submit]", "button[aria-label*='Send']", "button[aria-label*='Gönder']"],
+    "reply": [".markdown", ".prose", "[class*=markdown]", "[class*=message]"],
+    "busy": ["button[aria-label*='Stop']", "button[aria-label*='Durdur']"],
+    "maxChars": 20000
+  }
+}

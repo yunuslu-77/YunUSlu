@@ -1,0 +1,3 @@
+{"name": "Gemini (masaüstü / PWA)", "window_title": "(?i)gemini", "send_keys": ["enter"], "focus_input": "click_bottom",
+ "reply_via": "accessibility", "copy_button_name": "Copy", "busy_names": ["Stop response", "Stop", "Durdur"],
+ "max_chars": 30000, "settle_seconds": 3.0, "notes": "Gemini has no official desktop app; this targets the installed web app window."}

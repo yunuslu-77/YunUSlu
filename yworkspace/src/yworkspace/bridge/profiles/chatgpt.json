@@ -1,0 +1,3 @@
+{"name": "ChatGPT (masaüstü)", "window_title": "(?i)^chatgpt", "send_keys": ["enter"], "focus_input": "click_bottom",
+ "reply_via": "copy_button", "copy_button_name": "Copy", "busy_names": ["Stop streaming", "Stop"], "max_chars": 30000,
+ "settle_seconds": 3.0, "notes": "ChatGPT also supports MCP connectors; prefer MCP when available."}

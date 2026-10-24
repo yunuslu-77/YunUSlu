@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "yWorkspace Köprüsü / Bridge",
+  "version": "0.1.0",
+  "description": "Web sohbetlerindeki yapay zekâları bilgisayarınızdaki yWorkspace'e bağlar. Connects web AI chats to your local yWorkspace.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "yWorkspace"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*",
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://chat.qwen.ai/*",
+        "https://grok.com/*",
+        "https://chat.mistral.ai/*",
+        "https://www.kimi.com/*",
+        "https://kimi.moonshot.cn/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sites.json"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
