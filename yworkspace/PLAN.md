@@ -49,7 +49,7 @@ yWorkspace bu üçünü birden çözer:
 | Skill kapsamı | **Her alan.** Yazılım ve SaaS çekirdektir, pazarlama, iş, belge, eğitim ve araştırma da dahil |
 | Skill dili | **Türkçe + İngilizce**, her yapay zekâ için ayrı ayar |
 | Geliştirme yeri | Bu depoda, `yworkspace/` klasörü |
-| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 15 |
+| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 16 |
 
 ---
 
@@ -167,6 +167,20 @@ Tüm araçlar **tek bir yerde** tanımlanır (JSON şeması + Python fonksiyonu)
 | `deploy` | Seçilen hedefe yayına alma (bkz. bölüm 10) |
 | `package` / `sign` | APK, EXE, IPA, ISO ve diğer çıktıları derleme ve imzalama (bkz. bölüm 11) |
 | `emulate` | Derlenen çıktıyı emülatörde, Wine'da ya da sanal makinede deneme |
+
+### 5.6 İnsan gibi kullanım araçları
+
+| Araç | Görev |
+|---|---|
+| `screen_view` | Ekran görüntüsü + numaralı öğeler + metin haritası |
+| `tap` / `click` / `double_click` / `long_press` | Dokunma ve tıklama (öğe numarasıyla ya da koordinatla) |
+| `type` / `key` | İnsan hızında yazma, tuş ve kısayollar |
+| `scroll` / `swipe` / `drag` | Kaydırma, kaydırma hareketi, sürükle-bırak |
+| `wait_for` | Bir öğe görünene ya da yükleme bitene kadar bekleme |
+| `device` | Döndürme, geri/ana ekran tuşu, ağ hızı, konum, dil, karanlık mod |
+| `record` | Video ve adım kaydı |
+
+Ayrıntılar: bölüm 12.
 | `docs_fetch` / `web_search` | Kütüphane belgelerini okumak (isteğe bağlı, kullanıcı açar) |
 
 ### 5.5 Motor araçları
@@ -298,6 +312,7 @@ Model `finish` çağırdığında yazılım şunları kontrol eder. Biri bile ge
 - [ ] Her kabul kriteri için kanıt var (test adı, ekran görüntüsü ya da komut çıktısı)
 - [ ] İnceleyici rolü onay verdi
 - [ ] Uygulama çalışıyor ve arayüz varsa tarayıcıda açılıp kontrol edildi
+- [ ] Tüm kullanıcı yolculukları **insan gibi** baştan sona yapıldı, ekran görüntüsü kanıtları var (bkz. bölüm 12)
 
 ### 7.3 Tembelliğe karşı önlemler
 
@@ -319,6 +334,7 @@ Aynı model farklı rollerde, **her rol temiz bir bağlamla** çalıştırılır
 | **Test uzmanı** | Testleri yazar ve çalıştırır, kenar durumları arar |
 | **İnceleyici** | Değişikliği kontrol listesiyle inceler (doğruluk, güvenlik, okunabilirlik) |
 | **Hata ayıklayıcı** | Başarısız testin kök nedenini bulur |
+| **Test kullanıcısı** | Uygulamayı farklı persona'larla gerçek bir insan gibi kullanır, hata ve kullanılabilirlik raporu yazar |
 
 Kullanıcı isterse rollere farklı modeller atayabilir (ör. geliştirici DeepSeek, inceleyici Claude).
 
@@ -615,7 +631,67 @@ Bazı çıktılar ücretli hesap ya da sertifika gerektirir: Apple Developer, Go
 
 ---
 
-## 12. Web Arayüzü
+## 12. İnsan Gibi Kullanım
+
+Yapay zekâ yaptığı uygulamayı sadece test kodlarıyla denemez, **gerçek bir insan gibi kullanır:** ekrana bakar, butonlara dokunur, kaydırır, form doldurur, hata mesajlarını okur ve "bir kullanıcı burada takılır mı?" diye düşünür. Bulduğu sorunları kendisi düzeltir.
+
+### 12.1 Neleri kullanabilir?
+
+| Platform | Nerede çalışır | Nasıl kontrol eder |
+|---|---|---|
+| **Web uygulaması** | Docker içindeki tarayıcı (Chromium, Firefox, WebKit) | Playwright: tıklama, yazma, kaydırma, sürükle-bırak, dosya yükleme |
+| **Android** | Android emülatörü (telefon, tablet, TV, saat profilleri) | ADB + UI Automator / Appium: dokunma, kaydırma, uzun basma, geri tuşu, bildirimler, izin pencereleri |
+| **iOS** | iOS Simülatörü | XCUITest / Appium. ⚠️ Mac gerektirir |
+| **Windows uygulaması** | Windows sanal makinesi ya da kullanıcının Windows bilgisayarı (onayla) | Windows UI Automation |
+| **Linux uygulaması** | Docker içinde sanal ekran (Xvfb) | AT-SPI + xdotool |
+| **macOS uygulaması** | Mac | macOS Accessibility. ⚠️ Mac gerektirir |
+| **Oyunlar** | Emülatör, sanal ekran ya da tarayıcı | Ekran görüntüsü + görsel anlama, klavye/fare/dokunma |
+| **ISO / işletim sistemi** | QEMU sanal makinesi | VNC üzerinden ekran görüntüsü, klavye ve fare. Kurulum sihirbazını baştan sona geçer |
+| **API / komut satırı programı** | Docker | Gerçek kullanıcının yazacağı komutlar ve istekler |
+
+### 12.2 Ekranı nasıl "görür"?
+
+Her adımda yapay zekâya iki bilgi birden verilir:
+1. **Ekran görüntüsü:** Görsel anlayabilen modeller için (Claude, GPT, Gemini, Qwen-VL...). Tıklanabilir öğeler numaralanarak işaretlenir. Böylece model "7 numaralı butona bas" diyebilir, koordinat tahmin etmek zorunda kalmaz.
+2. **Ekranın metin haritası:** Erişilebilirlik ağacından çıkarılan liste. Örneğin `[7] Buton "Kayıt Ol"` ya da `[8] Metin kutusu "E-posta" (boş)`.
+
+**Görsel anlayamayan modeller (ör. DeepSeek'in metin modelleri) de kullanabilir.** Bunlar metin haritasıyla çalışır. İstenirse ekranı yorumlamak için yardımcı olarak ayrı bir görsel model (ör. yerel bir görsel model) atanır, sonuç metin olarak ana modele aktarılır.
+
+### 12.3 Gerçek insan gibi davranış
+
+- **Gerçekçi etkileşim:** İnsan hızında yazma, tıklamalar arası doğal bekleme, kaydırarak arama, klavye kısayolları. Bunlar zamanlama ve yükleme hatalarını ortaya çıkarır.
+- **Persona'lar (kullanıcı tipleri):** Aynı uygulama farklı gözlerle kullanılır:
+  - 🙂 **İlk kez kullanan:** Hiçbir şey bilmeden kayıt olur, yolunu bulmaya çalışır.
+  - 👵 **Teknolojiye uzak kullanıcı:** Küçük yazılar, karışık menüler ve belirsiz mesajlarda zorlanır.
+  - ⚡ **Sabırsız kullanıcı:** Butona iki kez basar, işlem bitmeden geri döner, sayfayı yeniler.
+  - ♿ **Erişilebilirlik:** Ekran okuyucuyla gezer, sadece klavye kullanır, renk körlüğü filtresiyle bakar.
+  - 😈 **Kötü niyetli test:** Formlara çok uzun metin, özel karakter ve saldırı denemeleri yazar (yalnızca kendi uygulamamızda).
+  - 🌍 **Farklı dil ve cihaz:** Türkçe, İngilizce, Arapça (sağdan sola), küçük ekran, yatay ekran, yavaş internet, çevrimdışı.
+- **Keşif testi:** Model kendisine verilen senaryonun dışına da çıkar ve uygulamayı merakla kurcalayarak beklenmedik hataları arar.
+
+### 12.4 Kullanıcı yolculukları
+
+SPEC.md'deki her önemli iş bir **kullanıcı yolculuğu** olarak yazılır. Örneğin "Kayıt ol → e-postayı doğrula → ücretli plana geç (test ödemesi) → ilk projeyi oluştur → çıkış yap". Yapay zekâ her yolculuğu insan gibi baştan sona yapar ve her adımın ekran görüntüsünü kanıt olarak kaydeder.
+
+### 12.5 Çıktılar
+
+- **Hata raporu:** Adım adım tekrar etme yolu, ekran görüntüsü ve video, konsol ve sistem günlükleri. Rapor doğrudan "Hata ayıklayıcı" rolüne gider, düzeltilir ve aynı yolculuk yeniden denenir.
+- **Kullanılabilirlik raporu:** "Kayıt butonu ilk ekranda görünmüyor", "hata mesajı ne yapılacağını söylemiyor" gibi kullanıcı deneyimi bulguları.
+- **Erişilebilirlik raporu:** Kontrast, ekran okuyucu etiketleri, dokunma alanı boyutu.
+- **Otomatik teste dönüştürme:** Başarılı her yolculuk kalıcı bir otomatik teste çevrilir (Playwright, Maestro, Appium). Böylece ileride aynı hata geri gelirse hemen yakalanır.
+- **Video kaydı:** Kullanıcı, yapay zekânın uygulamayı nasıl kullandığını sonradan izleyebilir. Web arayüzünde canlı da izlenebilir.
+
+### 12.6 Güvenlik
+
+- Tüm kullanım varsayılan olarak **izole ortamda** (Docker, emülatör, sanal makine) yapılır, kullanıcının gerçek masaüstünde yapılmaz. Gerçek bilgisayarda kullanım ayrı izin ister.
+- **Ödemeler her zaman test modunda** yapılır (Stripe test kartları, iyzico sandbox). Gerçek para hareketi yasaktır.
+- **Gerçek kişilere** e-posta, SMS ya da bildirim gönderilmez. Bunun yerine test posta kutusu (ör. Mailpit) kullanılır.
+- **Gerçek hesaplara giriş yapılmaz.** Yalnızca test hesapları kullanılır.
+- Kötü niyetli test persona'sı yalnızca kullanıcının kendi projesine uygulanır.
+
+---
+
+## 13. Web Arayüzü
 
 Yerel olarak çalışır (`http://localhost`), tarayıcıda açılır. İki görünümü vardır:
 
@@ -636,7 +712,7 @@ Yerel olarak çalışır (`http://localhost`), tarayıcıda açılır. İki gör
 
 ---
 
-## 13. Android uzaktan kumanda
+## 14. Android uzaktan kumanda
 
 Bulut olmadığı için Android uygulaması, **kullanıcının kendi bilgisayarındaki** yWorkspace'e bağlanır:
 - Aynı Wi-Fi ağında: QR kod ile eşleşme.
@@ -646,7 +722,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 14. Güvenlik
+## 15. Güvenlik
 
 - **Docker sandbox:** Tüm komutlar konteynerde çalışır. Konteyner sadece proje klasörünü görür.
 - **Çalışma alanı sınırı:** Dosya araçları proje klasörünün dışına çıkamaz (`../` ve sembolik bağlantılar engellenir).
@@ -659,7 +735,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 15. Lisans — ✅ Karar verildi
+## 16. Lisans — ✅ Karar verildi
 
 Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
@@ -673,7 +749,7 @@ Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
 ---
 
-## 16. Ölçüm: yWorkspace Bench
+## 17. Ölçüm: yWorkspace Bench
 
 "Zayıf modellerden vay dedirttik" iddiasını kanıtlamak için ölçmemiz gerekiyor:
 
@@ -684,7 +760,7 @@ Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
 ---
 
-## 17. Depo yapısı
+## 18. Depo yapısı
 
 ```
 yworkspace/
@@ -699,6 +775,7 @@ yworkspace/
 ├── engine/                 # derin çalışma motoru: döngü, roller, kapılar, hafıza
 ├── deploy/                 # yayına alma hedefleri
 ├── factory/                # Derleme Fabrikası: derleyici imajları, tarifler, imzalama
+├── operator/               # İnsan Gibi Kullanım: ekran, emülatör ve sanal makine kontrolü
 ├── web/                    # web arayüzü (backend API + frontend)
 ├── installer/              # kurulum sihirbazı (Windows/macOS/Linux)
 ├── skills/                 # skill kütüphanesi
@@ -711,7 +788,7 @@ yworkspace/
 
 ---
 
-## 18. Yol haritası
+## 19. Yol haritası
 
 Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 
@@ -723,20 +800,21 @@ Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 | 3 | **Model katmanı + metin protokolü:** adaptörler (önce DeepSeek, Gemini, Ollama, sonra diğerleri), metin protokolü ayrıştırıcısı, elle mod, geliştirici CLI | DeepSeek ve Gemini hem API'den hem elle moddan dosya okuyup düzenleyip test çalıştırabiliyor 🎯 |
 | 4 | **Derin Çalışma Motoru:** döngü, görev ağacı, roller, bitti kapıları, hafıza, kalite modları | Küçük bir web uygulaması, insan müdahalesi olmadan uçtan uca yapılabiliyor |
 | 5 | **Tüm bağlantı yolları:** MCP sunucusu, tarayıcı eklentisi, Masaüstü Köprüsü | Claude Desktop'tan (MCP), bir web sohbetinden (eklenti) ve bir masaüstü uygulamasından (Köprü) aynı görev tamamlanabiliyor 🎯 |
-| 6 | **Doğrulama araçları:** test, tarayıcı (Playwright), HTTP, git, veritabanı | Model uygulamayı tarayıcıda açıp hatayı görüp düzeltebiliyor |
+| 6 | **Doğrulama araçları + İnsan Gibi Kullanım (web):** test, tarayıcıda insan gibi kullanım (Playwright), HTTP, git, veritabanı | Model web uygulamasını insan gibi kullanıp hatayı görüp düzeltebiliyor |
 | 7 | **Web Arayüzü:** basit ve detaylı görünüm, TR/EN | Yazılım bilmeyen bir test kullanıcısı bir proje yaptırabiliyor |
 | 8 | **Kurulum Sihirbazı:** Windows, macOS, Linux yükleyicileri | Temiz bir bilgisayarda sıfırdan kurulum başarılı (3 işletim sisteminde) |
 | 9 | **Skill Kütüphanesi v1:** çekirdek + yazılım/SaaS skill'leri + dışa aktarma | Bench'te skill'li sonuçlar skill'sizden belirgin şekilde iyi |
 | 10 | **SaaS Kiti + Yayına alma** | Giriş + ödeme + panel içeren SaaS yapılıp bir VPS'e ve bir platforma yayınlanabiliyor |
 | 11 | **Derleme Fabrikası v1:** APK/AAB, EXE/MSI/kurulum sihirbazı, Linux paketleri, Docker imajları, web/PWA, imzalama yöneticisi | Aynı uygulamadan APK, EXE ve DEB üretilip emülatörde, Wine'da ve temiz konteynerde açıldığı kanıtlanıyor |
 | 12 | **Derleme Fabrikası v2:** IPA ve macOS (Mac derleme makinesi), ISO/IMG/sanal makine imajları, eklentiler, kütüphane paketleri, oyun, gömülü sistemler, TV/saat, mağaza yüklemeleri | Bir özel Linux ISO'su QEMU'da açılıyor, bir IPA Mac üzerinden derleniyor |
-| 13 | **Bench yayını + diğer skill kategorileri** | Sonuç tablosu yayında |
-| 14 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
-| 15 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
+| 13 | **İnsan Gibi Kullanım:** web, Android, Linux ve Windows uygulamaları, ISO kurulumları, iOS ve macOS (Mac ile); persona'lar, kullanıcı yolculukları, raporlar, otomatik teste dönüştürme | Yapay zekâ bir SaaS'a kayıt olup test ödemesi yapıyor, bir APK'yı emülatörde baştan sona kullanıyor ve bulduğu hatayı kendisi düzeltiyor |
+| 14 | **Bench yayını + diğer skill kategorileri** | Sonuç tablosu yayında |
+| 15 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
+| 16 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
 
 ---
 
-## 19. Açık sorular
+## 20. Açık sorular
 
 1. **Test için API anahtarları:** Aşama 3'te DeepSeek ve Gemini için gerçek anahtarlar gerekecek.
 2. **Logo ve tasarım:** yWorkspace ikonu, diğer y-uygulamalarının mavi tasarım diliyle mi olsun?
