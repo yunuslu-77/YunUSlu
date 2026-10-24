@@ -1,0 +1,27 @@
+name: yWorkspace
+
+on:
+  push:
+    paths: ["yworkspace/**", ".github/workflows/yworkspace.yml"]
+  pull_request:
+    paths: ["yworkspace/**", ".github/workflows/yworkspace.yml"]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.10", "3.13"]
+    defaults:
+      run:
+        working-directory: yworkspace
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e ".[dev,web]"
+      - run: ruff check src tests
+      - run: pytest -q -m "not docker"
