@@ -19,7 +19,7 @@ yWorkspace bu üçünü birden çözer:
 
 | Sorun | Çözüm |
 |---|---|
-| Ortam eksik | Dosya, terminal, test, git, veritabanı, tarayıcı ve yayına alma araçları olan, Docker içinde güvenli bir **tam geliştirme ortamı** |
+| Ortam eksik | Dosya, terminal, test, git, veritabanı, tarayıcı, yayına alma ve derleme (APK, EXE, IPA, ISO...) araçları olan, Docker içinde güvenli bir **tam geliştirme ortamı** |
 | Acele etme | İş gerçekten bitene kadar modeli çalıştıran **Derin Çalışma Motoru**. "Bitti" demesi, yazılım tarafından kontrol edilen kapılara bağlı |
 | Yöntem bilmeme | Her alanda derin, her yapay zekâya özel ayarlanmış, Türkçe ve İngilizce **skill kütüphanesi** |
 
@@ -49,7 +49,7 @@ yWorkspace bu üçünü birden çözer:
 | Skill kapsamı | **Her alan.** Yazılım ve SaaS çekirdektir, pazarlama, iş, belge, eğitim ve araştırma da dahil |
 | Skill dili | **Türkçe + İngilizce**, her yapay zekâ için ayrı ayar |
 | Geliştirme yeri | Bu depoda, `yworkspace/` klasörü |
-| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 14 |
+| Lisans | **PolyForm Noncommercial 1.0.0** (kod) + **CC BY-NC-SA 4.0** (skill/belge) + bireylere ticari kullanım izni, bkz. bölüm 15 |
 
 ---
 
@@ -165,6 +165,8 @@ Tüm araçlar **tek bir yerde** tanımlanır (JSON şeması + Python fonksiyonu)
 | `git_*` | status, diff, commit, branch, log, geri dönme |
 | `db_query` / `db_migrate` | Veritabanı sorgusu ve şema geçişi (yalnızca geliştirme veritabanında serbest) |
 | `deploy` | Seçilen hedefe yayına alma (bkz. bölüm 10) |
+| `package` / `sign` | APK, EXE, IPA, ISO ve diğer çıktıları derleme ve imzalama (bkz. bölüm 11) |
+| `emulate` | Derlenen çıktıyı emülatörde, Wine'da ya da sanal makinede deneme |
 | `docs_fetch` / `web_search` | Kütüphane belgelerini okumak (isteğe bağlı, kullanıcı açar) |
 
 ### 5.5 Motor araçları
@@ -456,7 +458,164 @@ Yayına alma her özerklik modunda **onay gerektirir.** Gizli bilgiler (API anah
 
 ---
 
-## 11. Web Arayüzü
+## 11. Derleme Fabrikası
+
+Yapay zekâ sadece kod yazmakla kalmaz, projeyi **kurulabilir ve dağıtılabilir dosyalara** dönüştürür: APK, EXE, IPA, ISO ve daha fazlası. Her derleme ortamı hazır bir Docker imajıdır. Kullanıcı hiçbir SDK'yı elle kurmaz, gereken imaj ilk kullanımda otomatik indirilir.
+
+### 11.1 Desteklenecek çıktılar
+
+**📱 Mobil**
+
+| Çıktı | Platform | Araçlar | Not |
+|---|---|---|---|
+| **APK** | Android (telefon, tablet, Android TV, Wear OS) | Gradle + Android SDK/NDK, Flutter, React Native, Capacitor | Docker'da tam destek |
+| **AAB** | Google Play mağazası | Gradle, Flutter | Play yüklemesi için zorunlu biçim |
+| **IPA** | iOS, iPadOS | Xcode, Flutter, React Native, Capacitor | ⚠️ **Mac gerektirir** (bkz. 11.3) |
+| **HAP** | HarmonyOS (Huawei) | DevEco / hvigor | Linux'ta komut satırı araçlarıyla |
+
+**🖥️ Windows**
+
+| Çıktı | Açıklama | Araçlar |
+|---|---|---|
+| **EXE** (tek dosya) | Kurulumsuz çalışan program | PyInstaller, Nuitka, Go, Rust, .NET, Electron, Tauri, Flutter |
+| **EXE kurulum sihirbazı** | "İleri, İleri" kurulumu | Inno Setup, NSIS |
+| **MSI** | Kurumsal kurulum paketi | WiX Toolset |
+| **MSIX** | Microsoft Store paketi | MSIX Packaging Tool, makeappx |
+| **winget / Chocolatey / Scoop** | Paket yöneticisi bildirimleri | Bildirim dosyaları |
+
+Windows çıktıları Linux Docker içinde çapraz derleme (MinGW, Wine) ile üretilebilir. Tam uyumluluk gereken durumlarda kullanıcının Windows bilgisayarı kullanılır.
+
+**🍎 macOS**
+
+| Çıktı | Açıklama | Not |
+|---|---|---|
+| **.app** | Mac uygulaması | ⚠️ Mac gerektirir |
+| **DMG** | Sürükle-bırak kurulum görüntüsü | ⚠️ Mac gerektirir |
+| **PKG** | Kurulum paketi | ⚠️ Mac gerektirir |
+| **Homebrew** | `brew install` formülü | Her yerde yazılabilir |
+
+**🐧 Linux**
+
+| Çıktı | Açıklama |
+|---|---|
+| **AppImage** | Her dağıtımda çalışan tek dosya |
+| **DEB** | Debian, Ubuntu, Pardus, Linux Mint |
+| **RPM** | Fedora, RHEL, openSUSE |
+| **Flatpak** | Flathub mağazası |
+| **Snap** | Snap Store |
+| **tar.gz** | Taşınabilir arşiv |
+| **AUR (PKGBUILD)** | Arch Linux |
+
+**💿 İşletim sistemi ve sanal makine imajları**
+
+| Çıktı | Açıklama | Araçlar |
+|---|---|---|
+| **ISO** | Önyüklenebilir özel Linux dağıtımı (canlı + kurulum), ör. "YunUSlu OS" | live-build, archiso, debootstrap, mkosi |
+| **IMG** | Raspberry Pi ve gömülü cihaz disk imajı | pi-gen, Buildroot, Yocto |
+| **USB imajı** | Önyüklenebilir USB | Hibrit ISO |
+| **QCOW2 / VMDK / VDI / VHD(X)** | QEMU/KVM, VMware, VirtualBox, Hyper-V sanal diskleri | Packer, qemu-img |
+| **OVA** | Hazır sanal makine paketi | Packer |
+| **Bulut imajı** | AWS AMI, Google Cloud, Azure | Packer |
+
+Windows ISO'ları yalnızca Microsoft'un kendi araçları ve lisans koşulları çerçevesinde (ör. otomatik kurulum dosyası eklemek) özelleştirilir. Lisanssız Windows dağıtımı yapılmaz.
+
+**🐳 Konteyner**
+
+| Çıktı | Açıklama |
+|---|---|
+| **Docker / OCI imajı** | Çok mimarili (amd64 + arm64) imajlar, Docker Hub ve GHCR'ye yayın |
+| **Docker Compose / Helm** | Çok servisli kurulum ve Kubernetes paketleri |
+
+**🌐 Web**
+
+| Çıktı | Açıklama |
+|---|---|
+| **Statik site** | HTML/CSS/JS paketi |
+| **PWA** | Telefona kurulabilen web uygulaması |
+| **WebAssembly** | Tarayıcıda çalışan C/C++/Rust/Go kodu |
+
+**🧩 Eklentiler**
+
+| Çıktı | Platform |
+|---|---|
+| **ZIP / CRX** | Chrome, Edge, Opera, Brave |
+| **XPI** | Firefox |
+| **Safari eklentisi** | ⚠️ Mac gerektirir |
+| **VSIX** | VS Code |
+| **JetBrains eklentisi (ZIP)** | IntelliJ, PyCharm, Android Studio |
+| **WordPress eklentisi (ZIP)** | WordPress |
+
+**📦 Kütüphane ve paketler**
+
+| Çıktı | Ekosistem |
+|---|---|
+| **Wheel / sdist** | Python (PyPI) |
+| **npm paketi** | JavaScript (npm) |
+| **JAR / AAR** | Java, Kotlin, Android (Maven Central) |
+| **NuGet** | .NET |
+| **Crate** | Rust (crates.io) |
+| **Go modülü / ikili dosyası** | Go |
+| **Dart paketi** | Flutter (pub.dev) |
+
+**🎮 Oyun**
+
+| Çıktı | Araçlar | Not |
+|---|---|---|
+| Windows, Linux, Android, Web | Godot (komut satırından dışa aktarma) | Docker'da tam destek |
+| Tüm platformlar | Unity | Kullanıcının Unity lisansı gerekir |
+| macOS, iOS | Godot, Unity | ⚠️ Mac gerektirir |
+
+**🔌 Gömülü sistemler ve IoT**
+
+| Çıktı | Platform | Araçlar |
+|---|---|---|
+| **BIN / HEX / UF2** | Arduino, ESP32, ESP8266, STM32, Raspberry Pi Pico | PlatformIO, Arduino CLI, ESP-IDF |
+| **Cihaza yükleme** | USB ile bağlı kart | esptool, avrdude (kullanıcı onayıyla) |
+
+**📺 Akıllı TV ve saatler**
+
+| Çıktı | Platform | Not |
+|---|---|---|
+| **APK** | Android TV, Google TV, Wear OS | Docker'da tam destek |
+| **WGT** | Samsung Tizen | Tizen CLI |
+| **IPK** | LG webOS | webOS CLI |
+| Apple TV, Apple Watch | tvOS, watchOS | ⚠️ Mac gerektirir |
+
+**📄 Belgeler** (ileride yOffice ile birlikte)
+
+PDF, EPUB, DOCX ve kullanım kılavuzları (Pandoc, LaTeX).
+
+### 11.2 Fabrikanın parçaları
+
+- **Derleyici imajları:** Her araç zinciri için hazır, sürümü sabitlenmiş Docker imajı (`yw-builder-android`, `yw-builder-flutter`, `yw-builder-windows`, `yw-builder-linux-pkg`, `yw-builder-iso`, `yw-builder-embedded` ...). Önbellek sayesinde ikinci derleme çok daha hızlıdır.
+- **Derleme tarifleri:** Her çıktı türü için yapay zekânın izleyeceği hazır tarif ve skill (ör. "Flutter → APK + AAB + IPA"). Tarif, proje türünü otomatik tanır.
+- **Derleme matrisi:** Tek komutla birden çok çıktı. Örneğin bir Flutter uygulamasından APK, AAB, EXE, DEB ve PWA aynı anda üretilir.
+- **İmzalama yöneticisi:** Android keystore, Windows kod imzalama sertifikası ve Apple sertifikaları güvenli depoda tutulur. Anahtarlar modele asla gösterilmez. Kaybedilirse uygulama güncellenemeyeceği için yedekleme konusunda uyarır.
+- **Doğrulama (bitti kapısı):** Derlenen dosya gerçekten denenir:
+  - APK → Android emülatöründe kurulur, açılır, ekran görüntüsü alınır (bilgisayarda donanım sanallaştırma gerekir).
+  - EXE → Wine'da ya da Windows bilgisayarda çalıştırılır.
+  - ISO / IMG → QEMU ile önyüklenir, açılış ekranının görüntüsü alınır.
+  - DEB / RPM / AppImage → Temiz bir konteynerde kurulup çalıştırılır.
+  - Docker imajı → Ayağa kaldırılır, sağlık kontrolü yapılır.
+- **Sürüm ve dağıtım:** Sürüm numarası, değişiklik günlüğü, GitHub Releases. Mağaza yüklemeleri (Google Play, App Store, Microsoft Store, Flathub, Snap Store) her zaman **kullanıcı onayıyla** yapılır.
+
+### 11.3 Mac gerektiren çıktılar
+
+Apple'ın lisans koşulları gereği iOS, macOS, tvOS, watchOS ve Safari çıktıları **yalnızca Apple donanımında, Xcode ile** derlenebilir. yWorkspace bu konuda kullanıcıya üç yol sunar:
+
+1. **Kullanıcının kendi Mac'i:** yWorkspace Mac'te kuruluysa doğrudan derler. Başka bir bilgisayardaysa, ağdaki Mac'i "derleme makinesi" olarak bağlar.
+2. **Kullanıcının kendi CI hesabı:** GitHub Actions gibi macOS sunucusu sunan bir CI hizmeti kullanıcının kendi hesabıyla bağlanır.
+3. **Kiralık Mac:** Kullanıcının kendi seçtiği kiralık Mac hizmeti.
+
+Ayrıca App Store'a yükleme ve iPhone'a kurulum için **Apple Developer hesabı** (yıllık ücretli) gerekir. Sihirbaz bunu baştan açıkça söyler.
+
+### 11.4 Lisans ve maliyet uyarıları
+
+Bazı çıktılar ücretli hesap ya da sertifika gerektirir: Apple Developer, Google Play geliştirici hesabı, Windows kod imzalama sertifikası (imzasız EXE'ler SmartScreen uyarısı verir), Unity lisansı. yWorkspace bunları derlemeden önce listeler ve ücretsiz alternatif varsa önerir.
+
+---
+
+## 12. Web Arayüzü
 
 Yerel olarak çalışır (`http://localhost`), tarayıcıda açılır. İki görünümü vardır:
 
@@ -477,7 +636,7 @@ Yerel olarak çalışır (`http://localhost`), tarayıcıda açılır. İki gör
 
 ---
 
-## 12. Android uzaktan kumanda
+## 13. Android uzaktan kumanda
 
 Bulut olmadığı için Android uygulaması, **kullanıcının kendi bilgisayarındaki** yWorkspace'e bağlanır:
 - Aynı Wi-Fi ağında: QR kod ile eşleşme.
@@ -487,7 +646,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 13. Güvenlik
+## 14. Güvenlik
 
 - **Docker sandbox:** Tüm komutlar konteynerde çalışır. Konteyner sadece proje klasörünü görür.
 - **Çalışma alanı sınırı:** Dosya araçları proje klasörünün dışına çıkamaz (`../` ve sembolik bağlantılar engellenir).
@@ -500,7 +659,7 @@ Telefondan iş verilebilir, ilerleme izlenebilir, onay kartları yanıtlanabilir
 
 ---
 
-## 14. Lisans — ✅ Karar verildi
+## 15. Lisans — ✅ Karar verildi
 
 Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
@@ -514,7 +673,7 @@ Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
 ---
 
-## 15. Ölçüm: yWorkspace Bench
+## 16. Ölçüm: yWorkspace Bench
 
 "Zayıf modellerden vay dedirttik" iddiasını kanıtlamak için ölçmemiz gerekiyor:
 
@@ -525,7 +684,7 @@ Ayrıntılar: [LICENSE](../LICENSE) ve [LICENSING.md](../LICENSING.md).
 
 ---
 
-## 16. Depo yapısı
+## 17. Depo yapısı
 
 ```
 yworkspace/
@@ -539,6 +698,7 @@ yworkspace/
 ├── extension/              # tarayıcı eklentisi + site profilleri
 ├── engine/                 # derin çalışma motoru: döngü, roller, kapılar, hafıza
 ├── deploy/                 # yayına alma hedefleri
+├── factory/                # Derleme Fabrikası: derleyici imajları, tarifler, imzalama
 ├── web/                    # web arayüzü (backend API + frontend)
 ├── installer/              # kurulum sihirbazı (Windows/macOS/Linux)
 ├── skills/                 # skill kütüphanesi
@@ -551,7 +711,7 @@ yworkspace/
 
 ---
 
-## 17. Yol haritası
+## 18. Yol haritası
 
 Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 
@@ -568,13 +728,15 @@ Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 | 8 | **Kurulum Sihirbazı:** Windows, macOS, Linux yükleyicileri | Temiz bir bilgisayarda sıfırdan kurulum başarılı (3 işletim sisteminde) |
 | 9 | **Skill Kütüphanesi v1:** çekirdek + yazılım/SaaS skill'leri + dışa aktarma | Bench'te skill'li sonuçlar skill'sizden belirgin şekilde iyi |
 | 10 | **SaaS Kiti + Yayına alma** | Giriş + ödeme + panel içeren SaaS yapılıp bir VPS'e ve bir platforma yayınlanabiliyor |
-| 11 | **Bench yayını + diğer skill kategorileri** | Sonuç tablosu yayında |
-| 12 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
-| 13 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
+| 11 | **Derleme Fabrikası v1:** APK/AAB, EXE/MSI/kurulum sihirbazı, Linux paketleri, Docker imajları, web/PWA, imzalama yöneticisi | Aynı uygulamadan APK, EXE ve DEB üretilip emülatörde, Wine'da ve temiz konteynerde açıldığı kanıtlanıyor |
+| 12 | **Derleme Fabrikası v2:** IPA ve macOS (Mac derleme makinesi), ISO/IMG/sanal makine imajları, eklentiler, kütüphane paketleri, oyun, gömülü sistemler, TV/saat, mağaza yüklemeleri | Bir özel Linux ISO'su QEMU'da açılıyor, bir IPA Mac üzerinden derleniyor |
+| 13 | **Bench yayını + diğer skill kategorileri** | Sonuç tablosu yayında |
+| 14 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
+| 15 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
 
 ---
 
-## 18. Açık sorular
+## 19. Açık sorular
 
 1. **Test için API anahtarları:** Aşama 3'te DeepSeek ve Gemini için gerçek anahtarlar gerekecek.
 2. **Logo ve tasarım:** yWorkspace ikonu, diğer y-uygulamalarının mavi tasarım diliyle mi olsun?
