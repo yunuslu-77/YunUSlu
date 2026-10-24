@@ -8,6 +8,7 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 root = Path(SPECPATH).parent
 datas = collect_data_files("yworkspace", includes=["**/*.json", "**/*.md", "**/*.html", "**/*.js", "**/*.css",
                                                     "**/Dockerfile", "**/*.yaml", "**/*.png"])
+datas += collect_data_files("yworkspace", includes=["saas_kit/templates/**/*", "saas_kit/templates/**/.*"])
 hidden = collect_submodules("yworkspace") + collect_submodules("uvicorn") + ["fastapi", "httpx"]
 
 a = Analysis([str(root / "installer" / "launcher.py")], pathex=[str(root / "src")], datas=datas,

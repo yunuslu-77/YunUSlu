@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ t('billing') }}</h1>
+<p>{{ t('current_plan') }}: <strong>{{ sub.plan if sub else 'free' }}</strong>
+  {% if sub and sub.status != 'active' %}<span class="pill warn">{{ sub.status }}</span>{% endif %}
+  {% if sub and sub.cancel_at_period_end %}<span class="pill">{{ t('canceled') }}</span>{% endif %}</p>
+{% if provider == 'fake' %}<p class="notice">TEST MODE — no real payments.</p>{% endif %}
+<section class="grid">
+{% for p in plans %}
+  <div class="card plan">
+    <h2>{{ p.name_tr if lang == 'tr' else p.name_en }}</h2>
+    <p class="price">{{ '%.2f'|format(p.price_minor / 100) }} {{ p.currency }} <small>{{ t('per_month') }}</small></p>
+    <ul>{% for f in p.features %}<li>{{ f }}</li>{% endfor %}</ul>
+    {% if p.price_minor and (not sub or sub.plan != p.id) and membership.role in ('owner', 'admin') %}
+      <form method="post" action="/billing/checkout/{{ p.id }}"><input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="primary">{{ t('upgrade') }}</button></form>
+    {% endif %}
+  </div>
+{% endfor %}
+</section>
+{% if sub and sub.plan != 'free' and not sub.cancel_at_period_end and membership.role == 'owner' %}
+<form method="post" action="/billing/cancel"><input type="hidden" name="csrf" value="{{ csrf }}">
+  <button class="danger">{{ t('cancel_sub') }}</button></form>
+{% endif %}
+{% endblock %}

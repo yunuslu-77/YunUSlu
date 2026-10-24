@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card narrow">
+  <h1>{{ t('reset') }}</h1>
+  <form method="post" action="/reset">
+    <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="token" value="{{ token }}">
+    <label for="password">{{ t('new_password') }}</label><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password">
+    <button class="primary">{{ t('save') }}</button>
+  </form>
+</section>
+{% endblock %}

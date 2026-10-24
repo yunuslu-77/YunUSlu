@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ t('members') }}</h1>
+<table>
+  <thead><tr><th>{{ t('email') }}</th><th>{{ t('role') }}</th><th></th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr><td>{{ r.user.email }}</td>
+      <td>{% if membership.role == 'owner' %}
+        <form method="post" action="/members/{{ r.id }}/role" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}">
+          <select name="role" aria-label="{{ t('role') }}">{% for x in roles %}<option value="{{ x }}" {% if x == r.role %}selected{% endif %}>{{ x }}</option>{% endfor %}</select>
+          <button>{{ t('save') }}</button></form>
+      {% else %}{{ r.role }}{% endif %}</td>
+      <td>{% if membership.role in ('owner', 'admin') or r.user_id == user.id %}
+        <form method="post" action="/members/{{ r.id }}/remove" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}">
+          <button class="danger">{{ t('remove') }}</button></form>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if invites %}<p>{% for i in invites %}<span class="pill">{{ i.email }} · {{ i.role }}</span> {% endfor %}</p>{% endif %}
+{% if membership.role in ('owner', 'admin') %}
+<section class="card narrow">
+  <h2>{{ t('invite') }}</h2>
+  <form method="post" action="/members/invite">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label for="inv-email">{{ t('email') }}</label><input id="inv-email" name="email" type="email" required>
+    <label for="inv-role">{{ t('role') }}</label>
+    <select id="inv-role" name="role"><option>member</option><option>admin</option>{% if membership.role == 'owner' %}<option>owner</option>{% endif %}</select>
+    <button class="primary">{{ t('invite') }}</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

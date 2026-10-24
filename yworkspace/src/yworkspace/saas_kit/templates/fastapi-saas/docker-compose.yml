@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    env_file: .env
+    ports: ["8000:8000"]
+    depends_on:
+      db: {condition: service_healthy}
+  db:
+    image: postgres:16-alpine
+    environment: {POSTGRES_USER: app, POSTGRES_PASSWORD: app, POSTGRES_DB: app}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U app"], interval: 5s, retries: 10}
+  mailpit:
+    image: axllent/mailpit
+    ports: ["8025:8025"]
+volumes:
+  pgdata:

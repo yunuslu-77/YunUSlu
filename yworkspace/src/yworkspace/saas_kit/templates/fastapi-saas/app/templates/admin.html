@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ t('admin') }}</h1>
+<section class="grid stats">
+  <div class="card"><h2>{{ stats.users }}</h2><p>{{ t('users') }} ({{ stats.verified }} ✓)</p></div>
+  <div class="card"><h2>{{ stats.orgs }}</h2><p>{{ t('orgs') }}</p></div>
+  <div class="card"><h2>{{ stats.paying }}</h2><p>{{ t('subscriptions') }}</p></div>
+  <div class="card"><h2>{{ '%.2f'|format(mrr) }}</h2><p>MRR</p></div>
+</section>
+<h2>{{ t('users') }}</h2>
+<table><thead><tr><th>{{ t('email') }}</th><th>✓</th><th></th></tr></thead><tbody>
+{% for u in users %}<tr><td>{{ u.email }}</td><td>{{ '✓' if u.email_verified else '' }}</td><td>{{ u.created_at.strftime('%Y-%m-%d') }}</td></tr>{% endfor %}
+</tbody></table>
+<h2>{{ t('subscriptions') }}</h2>
+<table><tbody>{% for x in subs %}<tr><td>{{ x.org.name }}</td><td>{{ x.plan }}</td><td>{{ x.status }}</td><td>{{ x.provider }}</td></tr>{% endfor %}</tbody></table>
+<h2>{{ t('audit') }}</h2>
+<table><tbody>{% for a in logs %}<tr><td>{{ a.at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ a.action }}</td><td>{{ a.detail }}</td><td>{{ a.ip }}</td></tr>{% endfor %}</tbody></table>
+{% endblock %}

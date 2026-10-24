@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ t('welcome') }}, {{ user.name or user.email }}</h1>
+{% if not user.email_verified %}
+<div class="notice">{{ t('verify_first') }}
+  <form method="post" action="/verify/resend" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="link">{{ t('verify_sent') }}</button></form></div>
+{% endif %}
+<section class="grid">
+  <div class="card"><h2>{{ org.name }}</h2><p>{{ t('role') }}: {{ membership.role }}</p>
+    <p>{{ t('current_plan') }}: <strong>{{ org.subscription.plan if org.subscription else 'free' }}</strong></p></div>
+  {% if memberships|length > 1 %}
+  <div class="card"><h2>{{ t('orgs') }}</h2><ul>
+    {% for m in memberships %}<li><a href="/orgs/switch/{{ m.org_id }}">{{ m.org.name }}</a> ({{ m.role }})</li>{% endfor %}
+  </ul></div>
+  {% endif %}
+</section>
+{% endblock %}
