@@ -344,7 +344,7 @@ def train_model(df, target: str, features: list[str] | None, kind: str = "auto",
         mae, bmae = np.abs(y[te] - pred).mean(), np.abs(y[te] - base).mean()
         lines += [f"Test R²: {r2(pred):.3f} (baseline that always predicts the mean: {r2(base):.3f})",
                   f"Test mean absolute error: {mae:.4g} (baseline {bmae:.4g})"]
-        coefs = sorted(zip(X.columns, w[1:]), key=lambda x: -abs(x[1]))[:8]
+        coefs = sorted(zip(X.columns, w[1:], strict=True), key=lambda x: -abs(x[1]))[:8]
         lines.append("Strongest effects (per 1 standard deviation): " +
                      ", ".join(f"{c} {v:+.3g}" for c, v in coefs))
         good = r2(pred) > 0.3 and mae < bmae * 0.9

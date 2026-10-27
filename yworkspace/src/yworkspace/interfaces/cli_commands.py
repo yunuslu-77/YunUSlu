@@ -257,3 +257,36 @@ def plugin_commands(sub, cfg) -> None:
                 print(f"{item['name']:24} {item['description']}  ({item['source']})")
         return 0
     s.set_defaults(fn=run)
+
+
+@command
+def automation_commands(sub, cfg) -> None:
+    s = sub.add_parser("automations", help="otomasyonlar / automations")
+    s.add_argument("action", choices=["list", "daemon", "tick", "autostart"])
+    s.add_argument("--project", default=".")
+    s.add_argument("--interval", type=int, default=60)
+
+    def run(a, cfg) -> int:
+        import time as _time
+
+        from ..automations import runner as rn
+        sess = _session(a.project, cfg, engine=a.action in ("daemon", "tick"))
+        try:
+            if a.action == "list":
+                print(sess.registry.call("automation_list", {}).text)
+            elif a.action == "autostart":
+                print(sess.registry.call("automation_autostart", {}).text)
+            else:
+                r = rn.Runner(sess)
+                while True:
+                    for line in r.tick():
+                        print(f"[{_time.strftime('%H:%M')}] {line}", flush=True)
+                    if a.action == "tick":
+                        break
+                    _time.sleep(max(15, a.interval))
+        except KeyboardInterrupt:
+            pass
+        finally:
+            sess.close()
+        return 0
+    s.set_defaults(fn=run)
