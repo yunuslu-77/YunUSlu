@@ -21,7 +21,8 @@ def _load_builtin_extensions() -> None:
     for mod in ("yworkspace.tools.verify", "yworkspace.operator.tools", "yworkspace.studio.tools",
                 "yworkspace.factory.tools", "yworkspace.deploy.tools", "yworkspace.labs.security.tools",
                 "yworkspace.labs.data.tools", "yworkspace.ops.tools", "yworkspace.automations.tools",
-                "yworkspace.engine.parallel", "yworkspace.sdk.loader", "yworkspace.saas_kit.tools"):
+                "yworkspace.engine.parallel", "yworkspace.sdk.loader", "yworkspace.saas_kit.tools",
+                "yworkspace.adopt.tools", "yworkspace.launch.tools", "yworkspace.learn.tools", "yworkspace.office.tools"):
         try:
             importlib.import_module(mod)
         except ImportError:
