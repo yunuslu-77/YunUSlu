@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 import urllib.parse
 from pathlib import Path
 
@@ -118,7 +119,12 @@ def install(session) -> None:
                 raise ToolError("not_owned", "Dynamic tests only run against your own app.",
                                 "For a non-local address set owned=true after the user confirms they own it.")
             findings += dast.scan_url(url)
-        text = report(sort_findings(findings), f"Security scan ({kind})")
+        findings = sort_findings(findings)
+        text = report(findings, f"Security scan ({kind})")
+        if kind == "all":  # remembered for the launch checklist and the health report
+            counts = {sev: sum(f.severity == sev for f in findings) for sev in scanners.SEVERITY_ORDER}
+            (root / ".yw").mkdir(exist_ok=True)
+            (root / ".yw" / "security.json").write_text(json.dumps({"time": time.time(), "counts": counts}), "utf-8")
         return text + ("\n\nNotes:\n" + "\n".join(notes) if notes else "")
 
     def security_setup() -> str:
