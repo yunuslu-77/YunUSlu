@@ -1,12 +1,16 @@
 import subprocess
 import sys
 
+import pytest
+
 from yworkspace.app import build_session
 from yworkspace.config import Config
 from yworkspace.engine.engine import AUTO, Approver
 
 
 def test_saas_template_into_project_and_its_tests_pass(tmp_path, monkeypatch):
+    for mod in ("fastapi", "sqlalchemy", "jinja2", "itsdangerous", "argon2", "multipart"):
+        pytest.importorskip(mod, reason="install saas_kit/templates/fastapi-saas/requirements.txt")
     monkeypatch.setenv("YW_HOME", str(tmp_path / "home"))
     sess = build_session(tmp_path / "salon", Config(sandbox="local"), with_engine=False)
     out = sess.registry.call("saas_templates", {}).text
