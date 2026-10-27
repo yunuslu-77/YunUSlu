@@ -1,0 +1,22 @@
+name: exam-prep
+title_tr: Sınav hazırlığı
+title_en: Exam preparation
+description: A realistic study plan, active recall and exam-style practice.
+triggers:
+- sınav
+- exam
+- yks
+- tyt
+- ayt
+- kpss
+- lgs
+- ales
+- yds
+- toefl
+- ielts
+- test hazırlık
+- çalışma programı
+- study plan
+- deneme sınavı
+roles: []
+priority: 50

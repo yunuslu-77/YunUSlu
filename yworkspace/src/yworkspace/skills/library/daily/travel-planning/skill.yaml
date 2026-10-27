@@ -1,0 +1,22 @@
+name: travel-planning
+title_tr: Seyahat planı
+title_en: Travel planning
+description: Day-by-day itineraries with realistic timing and a budget.
+triggers:
+- seyahat
+- travel
+- tatil
+- holiday
+- vacation
+- gezi
+- trip
+- itinerary
+- rota
+- otel
+- hotel
+- uçak
+- flight
+- vize
+- visa
+roles: []
+priority: 50

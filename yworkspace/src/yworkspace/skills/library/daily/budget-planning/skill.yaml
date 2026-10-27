@@ -1,0 +1,21 @@
+name: budget-planning
+title_tr: Bütçe ve harcama planı
+title_en: Budget and spending plan
+description: A personal or household budget computed from real numbers.
+triggers:
+- bütçe
+- budget
+- harcama
+- expense
+- masraf
+- birikim
+- saving
+- savings
+- aile bütçesi
+- maaş
+- salary
+- borç
+- debt
+- kredi kartı
+roles: []
+priority: 50

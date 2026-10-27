@@ -1,0 +1,20 @@
+name: user-manual
+title_tr: Kullanım kılavuzu ve teknik belge
+title_en: User manuals and technical docs
+description: Docs organised by what the reader wants to do, verified against the real
+  product.
+triggers:
+- kullanım kılavuzu
+- user manual
+- kılavuz
+- guide
+- dokümantasyon
+- documentation
+- teknik belge
+- technical documentation
+- yardım sayfası
+- help center
+- readme
+- how-to
+roles: []
+priority: 50

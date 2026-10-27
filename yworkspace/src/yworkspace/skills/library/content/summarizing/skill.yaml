@@ -1,0 +1,17 @@
+name: summarizing
+title_tr: Özetleme
+title_en: Summarising
+description: Faithful summaries at the length and level the reader needs.
+triggers:
+- özet
+- özetle
+- summary
+- summarize
+- summarise
+- tl;dr
+- ana fikir
+- key points
+- toplantı notu
+- meeting notes
+roles: []
+priority: 50

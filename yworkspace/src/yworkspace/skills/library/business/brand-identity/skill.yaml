@@ -1,0 +1,20 @@
+name: brand-identity
+title_tr: Marka kimliği
+title_en: Brand identity
+description: Name, voice, colours, logo and a small brand guide that stays consistent.
+triggers:
+- marka
+- brand
+- logo
+- renk paleti
+- color palette
+- kurumsal kimlik
+- brand identity
+- ses tonu
+- tone of voice
+- isim bulma
+- naming
+- tipografi
+- typography
+roles: []
+priority: 50

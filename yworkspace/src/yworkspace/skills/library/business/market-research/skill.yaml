@@ -1,0 +1,17 @@
+name: market-research
+title_tr: Pazar araştırması ve rakip analizi
+title_en: Market research and competitors
+description: Size a market and compare competitors with sources, not guesses.
+triggers:
+- market research
+- pazar araştırması
+- rakip
+- competitor
+- competition
+- rekabet
+- tam sam som
+- pazar büyüklüğü
+- market size
+- swot
+roles: []
+priority: 50

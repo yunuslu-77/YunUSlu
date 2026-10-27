@@ -1,0 +1,19 @@
+name: pricing-strategy
+title_tr: Fiyatlandırma stratejisi
+title_en: Pricing strategy
+description: Price from value and real competitor prices, then test.
+triggers:
+- fiyatlandırma
+- pricing
+- fiyat
+- price
+- freemium
+- ücretsiz deneme
+- free trial
+- abonelik fiyatı
+- paket
+- tier
+- indirim
+- discount
+roles: []
+priority: 50

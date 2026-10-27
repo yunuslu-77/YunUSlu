@@ -1,0 +1,22 @@
+name: deep-research
+title_tr: Derin araştırma
+title_en: Deep research
+description: Multi-source research with citations, contradictions and confidence levels.
+triggers:
+- araştır
+- research
+- derin araştırma
+- deep research
+- kaynak
+- sources
+- literatür
+- literature
+- karşılaştır
+- compare
+- inceleme
+- review
+- makale
+- paper
+- akademik
+roles: []
+priority: 50

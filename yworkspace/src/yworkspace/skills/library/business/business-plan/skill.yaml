@@ -1,0 +1,19 @@
+name: business-plan
+title_tr: İş planı
+title_en: Business plan
+description: Write a business plan grounded in real numbers and stated assumptions.
+triggers:
+- business plan
+- iş planı
+- girişim
+- startup
+- yatırımcı
+- investor
+- pitch
+- lean canvas
+- gelir modeli
+- revenue model
+- unit economics
+- birim ekonomisi
+roles: []
+priority: 50

@@ -1,0 +1,17 @@
+name: presentation
+title_tr: Sunum hazırlama
+title_en: Presentations
+description: Slides with one message each, built as real files.
+triggers:
+- sunum
+- presentation
+- slayt
+- slide
+- pitch deck
+- powerpoint
+- pptx
+- keynote
+- konuşma
+- talk
+roles: []
+priority: 50

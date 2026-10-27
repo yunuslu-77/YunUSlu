@@ -290,3 +290,34 @@ def automation_commands(sub, cfg) -> None:
             sess.close()
         return 0
     s.set_defaults(fn=run)
+
+
+@command
+def bench_commands(sub, cfg) -> None:
+    s = sub.add_parser("bench", help="yWorkspace Bench: modelleri yWorkspace ile ve onsuz ölç / measure models")
+    s.add_argument("--models", default="", help="comma-separated presets (default: your configured model)")
+    s.add_argument("--modes", default="bare,balanced", help="bare, economy, balanced, max")
+    s.add_argument("--tasks", default="", help="comma-separated task ids (default: all)")
+    s.add_argument("--out", default="bench-results")
+
+    def run(a, cfg) -> int:
+        import copy
+
+        from ..app import provider_factory
+        from ..bench import runner as br
+        from ..bench import tasks as bt
+        from ..skills import skills_for
+        models = {}
+        for preset in [m.strip() for m in (a.models or cfg.model).split(",") if m.strip()]:
+            c = copy.deepcopy(cfg)
+            c.model, c.role_models = preset, {}
+            models[preset] = provider_factory(c)[0]
+        tasks = [bt.get(t.strip()) for t in a.tasks.split(",") if t.strip()] or None
+        modes = tuple(m.strip() for m in a.modes.split(",") if m.strip())
+        print(f"Running {len(tasks or bt.TASKS)} tasks × {len(models)} models × {len(modes)} modes. "
+              "This uses your API keys and costs money.")
+        res = br.run_suite(models, tasks, modes, Path(a.out),
+                           lambda preset: (lambda role, text: skills_for(role, text, cfg.lang, None, preset)))
+        print(br.markdown(res))
+        return 0
+    s.set_defaults(fn=run)

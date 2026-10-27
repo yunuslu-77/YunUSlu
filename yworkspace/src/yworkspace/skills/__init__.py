@@ -49,7 +49,22 @@ class Skill:
             p = self.path / "models" / f"{model_family}.md"
             if p.exists():
                 parts.append("### Notes for your model\n" + p.read_text("utf-8").strip())
+        learned = _learned(self.name, model_family)
+        if learned:
+            parts.append("### Lessons learned on this computer\n" + learned)
         return "\n\n".join(parts)
+
+
+def _learned(name: str, family: str | None) -> str:
+    """Lessons the user approved (learn/), stored outside the library so updates never overwrite them."""
+    from ..config import home
+    d = home() / "skills-learned" / name
+    texts = []
+    for f in ("all", family):
+        p = d / f"{f}.md" if f else None
+        if p is not None and p.exists():
+            texts.append(p.read_text("utf-8").strip())
+    return "\n".join(t for t in texts if t)
 
 
 def load_all(extra_dirs: list[Path] | None = None) -> list[Skill]:

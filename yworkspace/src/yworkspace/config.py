@@ -23,6 +23,7 @@ class Config:
     budget_usd: float = 5.0
     max_steps: int = 200
     max_minutes: int = 240
+    learn: bool = True  # record repeated mistakes locally to improve skills (never leaves the computer)
     projects_dir: str = str(Path.home() / "yWorkspace")
     role_models: dict[str, str] = field(default_factory=dict)  # role -> model preset
     model_overrides: dict[str, dict] = field(default_factory=dict)

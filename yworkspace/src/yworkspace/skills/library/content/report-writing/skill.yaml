@@ -1,0 +1,16 @@
+name: report-writing
+title_tr: Rapor yazımı
+title_en: Report writing
+description: Reports that lead with the answer and back every claim.
+triggers:
+- rapor
+- report
+- analiz raporu
+- faaliyet raporu
+- yönetici özeti
+- executive summary
+- bulgular
+- findings
+- değerlendirme raporu
+roles: []
+priority: 50

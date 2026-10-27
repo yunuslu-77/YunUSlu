@@ -1,0 +1,17 @@
+name: contract-draft
+title_tr: Sözleşme taslağı
+title_en: Contract drafts
+description: Plain-language contract drafts, always marked as needing a lawyer.
+triggers:
+- sözleşme
+- contract
+- agreement
+- hizmet sözleşmesi
+- service agreement
+- nda
+- gizlilik sözleşmesi
+- freelance
+- kira sözleşmesi
+- iş sözleşmesi
+roles: []
+priority: 50

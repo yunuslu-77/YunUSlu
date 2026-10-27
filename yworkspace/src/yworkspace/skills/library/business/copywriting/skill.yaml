@@ -1,0 +1,19 @@
+name: copywriting
+title_tr: Satış ve reklam metni
+title_en: Copywriting
+description: Clear, specific copy for landing pages, ads and app stores.
+triggers:
+- copywriting
+- metin yazarlığı
+- reklam metni
+- ad copy
+- slogan
+- tagline
+- başlık
+- headline
+- açılış sayfası metni
+- landing page copy
+- cta
+- call to action
+roles: []
+priority: 50

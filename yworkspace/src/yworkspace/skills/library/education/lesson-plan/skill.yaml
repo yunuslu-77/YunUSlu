@@ -1,0 +1,20 @@
+name: lesson-plan
+title_tr: Ders planı
+title_en: Lesson planning
+description: Lesson plans with clear objectives, activities and assessment.
+triggers:
+- ders planı
+- lesson plan
+- öğretmen
+- teacher
+- müfredat
+- curriculum
+- kazanım
+- learning outcome
+- etkinlik
+- activity
+- ödev
+- worksheet
+- çalışma kağıdı
+roles: []
+priority: 50

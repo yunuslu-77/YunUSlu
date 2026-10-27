@@ -1,0 +1,19 @@
+name: teaching
+title_tr: Konu anlatımı
+title_en: Teaching and explaining
+description: Explain step by step at the learner's level and check understanding.
+triggers:
+- konu anlatımı
+- anlat
+- explain
+- öğret
+- teach
+- ders
+- lesson
+- nasıl çalışır
+- how does
+- öğrenmek istiyorum
+- i want to learn
+- tutorial
+roles: []
+priority: 50

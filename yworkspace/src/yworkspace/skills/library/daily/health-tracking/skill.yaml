@@ -1,0 +1,25 @@
+name: health-tracking
+title_tr: Sağlık takibi
+title_en: Health tracking
+description: Track habits and measurements and summarise them - never diagnose.
+triggers:
+- sağlık
+- health
+- kilo
+- weight
+- uyku
+- sleep
+- adım
+- steps
+- egzersiz
+- exercise
+- diyet
+- diet
+- tansiyon
+- blood pressure
+- şeker
+- glucose
+- ilaç takibi
+- medication
+roles: []
+priority: 50

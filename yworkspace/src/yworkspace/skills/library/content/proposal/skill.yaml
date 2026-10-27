@@ -1,0 +1,17 @@
+name: proposal
+title_tr: Teklif hazırlama
+title_en: Proposals and quotes
+description: Proposals that show understanding, scope, price and terms clearly.
+triggers:
+- teklif
+- proposal
+- fiyat teklifi
+- quote
+- quotation
+- rfp
+- ihale
+- tender
+- iş teklifi
+- proje teklifi
+roles: []
+priority: 50

@@ -1,0 +1,22 @@
+name: social-media
+title_tr: Sosyal medya
+title_en: Social media
+description: Platform-native posts, a realistic calendar and honest measurement.
+triggers:
+- sosyal medya
+- social media
+- instagram
+- tiktok
+- linkedin
+- twitter
+- x.com
+- reels
+- shorts
+- gönderi
+- post
+- paylaşım takvimi
+- content calendar
+- hashtag
+- influencer
+roles: []
+priority: 50
