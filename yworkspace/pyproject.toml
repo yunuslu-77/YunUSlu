@@ -20,6 +20,8 @@ web = ["fastapi>=0.110", "uvicorn>=0.29"]
 bridge = ["pyautogui>=0.9", "pynput>=1.7", "uiautomation>=2.0; sys_platform == 'win32'",
           "pyobjc-framework-ApplicationServices>=10; sys_platform == 'darwin'"]
 mcp = ["mcp>=1.0"]
+data = ["pandas>=2.1", "numpy>=1.26", "openpyxl>=3.1"]
+office = ["python-docx>=1.1", "python-pptx>=0.6.23", "openpyxl>=3.1"]
 dev = ["pytest>=8", "ruff>=0.5"]
 
 [project.scripts]
