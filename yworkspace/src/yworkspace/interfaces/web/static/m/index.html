@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2f6fe4">
+  <title>yWorkspace</title>
+  <link rel="manifest" href="/m/manifest.webmanifest">
+  <link rel="icon" href="/static/m/icon-192.png">
+  <link rel="apple-touch-icon" href="/static/m/icon-192.png">
+  <link rel="stylesheet" href="/static/m/m.css">
+</head>
+<body>
+  <header><b>yWorkspace</b><span id="who" class="muted"></span><button id="lang" class="ghost" aria-label="language">EN</button></header>
+
+  <section id="unpaired" hidden>
+    <h1 data-t="welcome">Telefonunu bağla</h1>
+    <p data-t="howto">Bilgisayarında yWorkspace'i aç → Ayarlar → Telefon eşleştir. Çıkan QR kodu telefonunun kamerasıyla okut.</p>
+    <form id="codeForm"><input id="code" autocomplete="one-time-code" placeholder="ABCD-EFGH" aria-label="code">
+      <button class="primary" data-t="connect">Bağlan</button></form>
+    <p id="pairErr" class="err" hidden></p>
+  </section>
+
+  <main id="app" hidden>
+    <label class="row"><span data-t="project">Proje</span><select id="project"></select></label>
+    <div id="approvals"></div>
+    <div class="card">
+      <textarea id="goal" rows="3" data-tph="goal_ph"></textarea>
+      <div class="row"><select id="quality" aria-label="quality">
+        <option value="economy" data-t="q_economy">Ekonomik</option><option value="balanced" selected data-t="q_balanced">Dengeli</option>
+        <option value="max" data-t="q_max">Maksimum kalite</option></select>
+        <button id="stop" class="danger" hidden data-t="stop">Durdur</button>
+        <button id="start" class="primary" data-t="start">Başlat</button></div>
+    </div>
+    <div class="card"><div class="row"><span id="phase" class="pill">—</span><span id="summary" class="muted"></span></div>
+      <div class="bar"><div id="fill"></div></div></div>
+    <div class="card"><div class="row"><input id="preview" placeholder="http://192.168.…:3000" aria-label="preview">
+      <button id="openPreview" class="ghost" data-t="open">Aç</button></div></div>
+    <h2 data-t="activity">Neler oluyor</h2>
+    <ol id="feed"></ol>
+  </main>
+  <script src="/static/m/m.js"></script>
+</body>
+</html>

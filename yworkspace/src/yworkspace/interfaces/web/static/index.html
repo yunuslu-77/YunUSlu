@@ -104,6 +104,10 @@
       <fieldset><legend data-i18n="api_key">API anahtarı ekle</legend>
         <input id="keyName" placeholder="DEEPSEEK_API_KEY"><input id="keyValue" type="password" placeholder="sk-…">
         <button id="saveKey" type="button" class="small" data-i18n="save">Kaydet</button></fieldset>
+      <fieldset class="phone"><legend data-i18n="phone">Telefon</legend>
+        <button id="pairBtn" type="button" class="small" data-i18n="pair">Telefon eşleştir</button>
+        <div id="pairBox" hidden><div id="pairQr"></div><div id="pairInfo" class="muted"></div></div>
+        <ul id="deviceList" class="tasks"></ul></fieldset>
       <fieldset class="setup"><legend data-i18n="setup">Kurulum</legend>
         <div id="sysInfo" class="muted"></div><ul id="setupSteps" class="tasks"></ul><pre id="setupOut" hidden></pre></fieldset>
       <menu><button value="cancel" class="ghost" data-i18n="close">Kapat</button>

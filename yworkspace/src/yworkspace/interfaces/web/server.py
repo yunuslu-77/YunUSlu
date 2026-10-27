@@ -16,7 +16,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from ... import __version__
@@ -147,18 +147,33 @@ def _jsonable(d: dict) -> dict:
         return {k: str(v) for k, v in d.items()}
 
 
-def create_app(cfg: Config | None = None, token: str | None = None, session_factory=None) -> FastAPI:
+def create_app(cfg: Config | None = None, token: str | None = None, session_factory=None, devices=None,
+               public_url: str | None = None) -> FastAPI:
+    from ...remote.devices import Devices
     cfg = cfg or Config.load()
+    devices = devices or Devices()
     token = token or secrets.token_urlsafe(18)
     hub = Hub()
     approver = WebApprover(hub)
     runner = Runner(hub, approver, session_factory)
     app = FastAPI(title="yWorkspace", version=__version__, docs_url=None, redoc_url=None)
     app.state.token, app.state.hub, app.state.runner, app.state.cfg = token, hub, runner, cfg
+    app.state.devices, app.state.public_url = devices, public_url
+
+    def is_owner(request: Request) -> bool:
+        given = request.headers.get("X-YW-Token") or request.cookies.get("yw_token") or request.query_params.get("t")
+        return bool(given) and secrets.compare_digest(given, token)
+
+    def owner(request: Request) -> None:
+        """The person at the computer (main session token). Keys, settings, setup and devices need this."""
+        if not is_owner(request):
+            raise HTTPException(401, "Missing or wrong session token.")
 
     def auth(request: Request) -> None:
-        given = request.headers.get("X-YW-Token") or request.cookies.get("yw_token") or request.query_params.get("t")
-        if not given or not secrets.compare_digest(given, token):
+        """The owner or a paired phone: run work, watch progress, answer approvals."""
+        if is_owner(request):
+            return
+        if devices.check(request.headers.get("X-YW-Device") or request.cookies.get("yw_device")) is None:
             raise HTTPException(401, "Missing or wrong session token.")
 
     def projects_dir() -> Path:
@@ -189,7 +204,7 @@ def create_app(cfg: Config | None = None, token: str | None = None, session_fact
         return {"version": __version__, "busy": runner.busy(), "project": runner.project,
                 "health": [asdict(h) for h in run_doctor(cfg)], "config": asdict(cfg)}
 
-    @app.put("/api/config", dependencies=[Depends(auth)])
+    @app.put("/api/config", dependencies=[Depends(owner)])
     def put_config(values: dict = Body(...)):
         for k, v in values.items():
             if k in Config.__dataclass_fields__:
@@ -197,7 +212,7 @@ def create_app(cfg: Config | None = None, token: str | None = None, session_fact
         cfg.save()
         return asdict(cfg)
 
-    @app.post("/api/keys", dependencies=[Depends(auth)])
+    @app.post("/api/keys", dependencies=[Depends(owner)])
     def put_key(name: str = Body(...), value: str = Body(...)):
         if not name.isupper() or not name.endswith(("_KEY", "_TOKEN")):
             raise HTTPException(400, "Key names look like DEEPSEEK_API_KEY.")
@@ -298,13 +313,13 @@ def create_app(cfg: Config | None = None, token: str | None = None, session_fact
         return StreamingResponse(stream(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
-    @app.get("/api/setup", dependencies=[Depends(auth)])
+    @app.get("/api/setup", dependencies=[Depends(owner)])
     def setup_status():
         from ...setup.wizard import Wizard
         w = Wizard(cfg)
         return {"system": w.ctx.info.describe(), "steps": w.status()}
 
-    @app.post("/api/setup/{step_id}", dependencies=[Depends(auth)])
+    @app.post("/api/setup/{step_id}", dependencies=[Depends(owner)])
     def setup_step(step_id: str, answers: dict = Body(default={}), run: bool = Body(default=False)):
         from ...setup.wizard import STEPS, Wizard
         if step_id not in {s.id for s in STEPS}:
@@ -328,11 +343,60 @@ def create_app(cfg: Config | None = None, token: str | None = None, session_fact
                 break
         return {"plan": plan, "results": results, "ok": next(s for s in STEPS if s.id == step_id).check(w.ctx).ok}
 
-    @app.get("/api/pair", dependencies=[Depends(auth)])
-    def pair(request: Request):
-        """Data for pairing the Android remote (QR code contents)."""
+    @app.post("/api/pair/start", dependencies=[Depends(owner)])
+    def pair_start(request: Request):
+        """A one-time code (5 minutes) and a QR code the phone's camera opens."""
+        from ...remote import qr
+        from ...remote.devices import CODE_TTL, lan_ip
+        code = devices.new_code()
         host = request.url.hostname
-        return {"url": f"{request.url.scheme}://{host}:{request.url.port}", "token": token}
+        if host in ("127.0.0.1", "localhost", "::1"):
+            host = lan_ip()
+        base = app.state.public_url or f"{request.url.scheme}://{host}:{request.url.port or 80}"
+        link = f"{base.rstrip('/')}/m/#pair={code}"
+        return {"code": code, "link": link, "svg": qr.svg(link, 6), "expires_in": CODE_TTL,
+                "lan": host not in ("127.0.0.1", "localhost"),
+                "hint": "Start yWorkspace with `yw web --lan` so the phone can reach this computer on your Wi-Fi."}
+
+    @app.post("/api/pair/claim")
+    def pair_claim(code: str = Body(...), name: str = Body("Telefon")):
+        got = devices.claim(code, name)
+        if got is None:
+            raise HTTPException(403, "The code is wrong, expired or already used. Show a new code on the computer.")
+        device_token, dev = got
+        resp = JSONResponse({"device": dev})
+        resp.set_cookie("yw_device", device_token, httponly=True, samesite="strict", max_age=400 * 24 * 3600)
+        return resp
+
+    @app.get("/api/me", dependencies=[Depends(auth)])
+    def me(request: Request):
+        if is_owner(request):
+            return {"owner": True}
+        d = devices.check(request.headers.get("X-YW-Device") or request.cookies.get("yw_device"))
+        return {"owner": False, "device": {k: v for k, v in d.items() if k != "hash"}}
+
+    @app.get("/api/devices", dependencies=[Depends(owner)])
+    def device_list():
+        return devices.list()
+
+    @app.delete("/api/devices/{device_id}", dependencies=[Depends(owner)])
+    def device_revoke(device_id: str):
+        if not devices.revoke(device_id):
+            raise HTTPException(404, "No such device.")
+        return {"revoked": device_id}
+
+    @app.get("/m/", response_class=HTMLResponse)
+    def mobile():
+        return FileResponse(STATIC / "m" / "index.html")
+
+    @app.get("/m/sw.js")
+    def service_worker():
+        return FileResponse(STATIC / "m" / "sw.js", media_type="text/javascript",
+                            headers={"Service-Worker-Allowed": "/m/", "Cache-Control": "no-cache"})
+
+    @app.get("/m/manifest.webmanifest")
+    def manifest():
+        return FileResponse(STATIC / "m" / "manifest.webmanifest", media_type="application/manifest+json")
 
     return app
 
@@ -342,6 +406,13 @@ def serve(cfg: Config, host: str = "127.0.0.1", port: int = 8700, open_browser: 
     app = create_app(cfg)
     url = f"http://{host if host != '0.0.0.0' else '127.0.0.1'}:{port}/?t={app.state.token}"
     print(f"yWorkspace: {url}")
+    if host == "0.0.0.0":
+        from ...remote import qr
+        from ...remote.devices import lan_ip
+        link = f"http://{lan_ip()}:{port}/m/#pair={app.state.devices.new_code()}"
+        print("\nTelefonla bağlanmak için kamerayla okut (5 dakika) / Scan with your phone camera (5 minutes):\n")
+        print(qr.terminal(link))
+        print(f"\n{link}\nOnly devices on your own network can reach it. Paired phones: Settings → Phone.\n")
     if open_browser:
         import webbrowser
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()

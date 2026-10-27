@@ -31,7 +31,7 @@ yw = "yworkspace.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-yworkspace = ["**/*.json", "**/*.yaml", "**/*.md", "**/*.html", "**/*.js", "**/*.css", "**/Dockerfile",
+yworkspace = ["**/*.json", "**/*.yaml", "**/*.md", "**/*.html", "**/*.js", "**/*.css", "**/*.png", "**/*.webmanifest", "**/Dockerfile",
               "saas_kit/templates/**/*", "saas_kit/templates/**/.*"]
 
 [tool.pytest.ini_options]
