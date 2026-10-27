@@ -52,7 +52,8 @@ yw setup        # kurulum sihirbazı (Docker, model anahtarı, MCP, eklenti…)
 yw doctor       # her şey hazır mı?
 ```
 
-İsteğe bağlı ekler: `mcp`, `bridge` (masaüstü köprüsü), `dev` (testler). Medya için FFmpeg, ofis dönüştürme için
+Windows'ta Docker'sız (yerel) modda komutlar Git for Windows'un bash'iyle çalışır, bu yüzden Git kurulu olmalıdır.
+`yw doctor` (ve web arayüzündeki sağlık listesi) bunu kontrol eder. İsteğe bağlı ekler: `mcp`, `bridge` (masaüstü köprüsü), `dev` (testler). Medya için FFmpeg, ofis dönüştürme için
 LibreOffice önerilir. Sihirbaz bunları kurar.
 
 ## Kullanım

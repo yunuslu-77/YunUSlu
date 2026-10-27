@@ -30,6 +30,11 @@ def run_doctor(cfg: Config) -> list[HealthItem]:
                                 "Run the setup wizard: yw setup"))
     else:
         items.append(HealthItem("Sandbox", True, "local mode (commands run directly on this computer)", False))
+        if sys.platform == "win32":
+            from ..sandbox.local import windows_bash
+            bash = windows_bash()
+            items.append(HealthItem("bash (Git for Windows)", bash is not None, bash or "missing: commands fall back to "
+                                    "cmd.exe and many will fail", True, "Install Git for Windows: winget install Git.Git"))
     items.append(HealthItem("git", shutil.which("git") is not None, "", False))
     try:
         prof = get_profile(cfg.model)
