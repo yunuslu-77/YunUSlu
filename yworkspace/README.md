@@ -79,7 +79,7 @@ Kalite modları: `economy`, `balanced`, `max`.
 
 Bu bölüm dürüst bir özettir.
 
-**Bu depoda otomatik testlerle doğrulananlar:** 141 test geçiyor (Linux). Dosya motoru, Docker sandbox,
+**Bu depoda otomatik testlerle doğrulananlar:** 141 test bu ortamda (Linux, Docker ile) geçiyor. GitHub CI'da da Linux, macOS ve Windows üzerinde, Python 3.10 ve 3.13 ile geçiyor (Docker ve LibreOffice isteyen testler CI'da atlanıyor). Dosya motoru, Docker sandbox,
 metin protokolü, motor ve kapılar sahte modellerle test edildi. MCP sunucusu resmî MCP istemcisiyle denendi. Tarayıcı
 eklentisi gerçek Chromium'da, web arayüzü ve telefon sayfası Playwright ile denendi. Ayrıca şunlar da çalıştırılarak
 denendi: Go çapraz derleme ve `.deb`, Docker imajı, medya üretimi (FFmpeg), veri raporları, otomasyonlar, QR kodları
@@ -128,7 +128,7 @@ model router and parallel work pick the right model for each job. You also get:
 **Use:** `yw web` opens the UI. `yw web --lan` lets your phone connect. `yw do "goal"` runs a whole project. `yw manual`
 works with any chat bot. `yw mcp-config` sets up Claude Desktop or Cursor. `yw bench` measures models.
 
-**Status:** 141 automated tests pass on Linux. Some parts could not be tested here because they need real
+**Status:** 141 automated tests pass here (Linux with Docker), and CI is green on Linux, macOS and Windows with Python 3.10 and 3.13. Some parts could not be tested here because they need real
 API keys, Android, iOS or macOS devices, Windows, virtual machines or hosting accounts. See the Turkish section above
 for the exact list.
 
