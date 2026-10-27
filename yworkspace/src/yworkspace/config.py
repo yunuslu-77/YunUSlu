@@ -23,6 +23,7 @@ class Config:
     budget_usd: float = 5.0
     max_steps: int = 200
     max_minutes: int = 240
+    office_app: str = ""  # program that opens office files, e.g. yOffice (empty: the system default)
     learn: bool = True  # record repeated mistakes locally to improve skills (never leaves the computer)
     projects_dir: str = str(Path.home() / "yWorkspace")
     role_models: dict[str, str] = field(default_factory=dict)  # role -> model preset
