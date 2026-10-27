@@ -62,7 +62,7 @@ def test_monitor_checks_and_incidents(tmp_path, monkeypatch):
     mon = Monitor(root)
     mon.save_config({"urls": [f"http://127.0.0.1:{up.server_address[1]}/health", "http://127.0.0.1:9/down"],
                      "ssl_hosts": [f"127.0.0.1:{tls.server_address[1]}"], "insecure_tls": True,
-                     "logs_cmd": f"cat {tmp_path / 'app.log'}", "disk_cmd": "df -P /", "backup_dir": str(backups),
+                     "logs_cmd": f"cat '{(tmp_path / 'app.log').as_posix()}'", "disk_cmd": "df -P /", "backup_dir": str(backups),
                      "restore_test_cmd": "false"})
     res = mon.run_checks()
     names = {c.name: c for c in res.checks}

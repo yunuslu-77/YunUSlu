@@ -12,7 +12,7 @@ from pathlib import Path
 
 from ..core.errors import ToolError
 from ..extensions import register
-from ..sandbox.local import shell_args
+from ..sandbox.local import shell_args, utf8_env
 from ..tools.registry import EXTERNAL, SAFE, WRITE, Tool, obj
 from . import packaging, signing, stores, verify
 from .recipes import Recipe, applicable, by_id
@@ -61,8 +61,12 @@ def _docker_cmd(root: Path, image: str, script: str, recipe: Recipe, env: dict) 
 
 def run_recipe(root: Path, recipe: Recipe, opts: dict, env: dict | None = None,
                runner=None) -> tuple[bool, str, list[Path]]:
-    runner = runner or (lambda cmd, cwd, shell: subprocess.run(cmd, cwd=cwd, shell=shell, capture_output=True,
-                                                               text=True, timeout=7200, errors="replace"))
+    def default_runner(cmd, cwd, shell):
+        if shell:  # bash on every system (Git Bash on Windows)
+            cmd, shell = shell_args(cmd)
+        return subprocess.run(cmd, cwd=cwd, shell=shell, capture_output=True, text=True, timeout=7200,
+                              encoding="utf-8", errors="replace", env=utf8_env())
+    runner = runner or default_runner
     where = _where(recipe)
     cmds = recipe.commands(root, opts)
     if where in ("mac", "windows"):

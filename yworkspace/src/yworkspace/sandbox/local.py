@@ -40,6 +40,15 @@ def shell_args(command: str) -> tuple[list[str] | str, bool]:
     return command, True
 
 
+def utf8_env(extra: dict | None = None) -> dict:
+    """Child processes speak UTF-8 (Windows defaults to the console code page, which breaks Turkish text)."""
+    env = dict(os.environ)
+    env.setdefault("PYTHONIOENCODING", "utf-8")
+    env.setdefault("PYTHONUTF8", "1")
+    env.update(extra or {})
+    return env
+
+
 @dataclass
 class LocalSandbox:
     root: Path
@@ -70,7 +79,7 @@ class LocalSandbox:
         try:
             args, use_shell = shell_args(command)
             r = subprocess.run(args, shell=use_shell, cwd=self._cwd(cwd), capture_output=True, text=True,
-                               timeout=timeout, encoding="utf-8", errors="replace")
+                               timeout=timeout, encoding="utf-8", errors="replace", env=utf8_env())
         except subprocess.TimeoutExpired as e:
             out = (e.stdout or "") if isinstance(e.stdout, str) else ""
             return RunResult(124, clip(out + f"\n[stopped after {timeout}s]"), time.monotonic() - start, True)
@@ -84,7 +93,7 @@ class LocalSandbox:
         log = open(self.logdir / f"{name}.log", "w", encoding="utf-8")
         kwargs = {"start_new_session": True} if sys.platform != "win32" else {}
         args, use_shell = shell_args(command)
-        self._procs[name] = subprocess.Popen(args, shell=use_shell, cwd=self._cwd(cwd), stdout=log,
+        self._procs[name] = subprocess.Popen(args, shell=use_shell, cwd=self._cwd(cwd), stdout=log, env=utf8_env(),
                                              stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, **kwargs)
         time.sleep(1.0)
         state = "running" if self._procs[name].poll() is None else "exited immediately"
