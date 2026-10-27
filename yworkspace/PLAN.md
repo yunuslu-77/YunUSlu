@@ -1145,6 +1145,35 @@ Her aşama, kendi bitti kriteri sağlanmadan kapanmaz.
 | 25 | **Android uzaktan kumanda** | Telefondan iş verilip onaylanabiliyor |
 | 26 | **Ofis dosyaları (yOffice ile birleşme)** | docx, xlsx ve pptx okunup düzenlenebiliyor |
 
+
+### Uygulama durumu (27 Ekim 2026)
+
+27 aşamanın tamamı kodlandı. Aşağıdaki "bitti kriteri" sütunu gerçek kullanımla ölçülecek hedeftir. Bu tablo ise
+bugün nelerin otomatik testlerle kanıtlandığını, nelerin donanım, hesap ya da anahtar beklediğini gösterir.
+
+| # | Durum | Kanıt / eksik |
+|---|---|---|
+| 0-2 | ✅ | Dosya motoru, Docker sandbox ve süreçler testli. CI 3 işletim sisteminde çalışıyor |
+| 3 | ⚠️ | Adaptörler ve metin protokolü sahte sunucularla testli. **Gerçek DeepSeek/Gemini anahtarıyla denenmedi** |
+| 4 | ✅ | Motor, roller ve kapılar sahte modelle uçtan uca testli. Gerçek modelle ölçüm Bench ile yapılacak |
+| 5 | ✅/⚠️ | MCP resmî istemciyle, eklenti gerçek Chromium'da testli. Masaüstü Köprüsü yalnızca sahte sürücüyle denendi |
+| 6-7 | ✅ | Web'de insan gibi kullanım ve web arayüzü Playwright ile testli |
+| 8 | ⚠️ | Sihirbaz ve Linux `.deb` testli. Windows/macOS kurulum programları CI'da derleniyor ama temiz makinede denenmedi |
+| 9-10 | ✅ | 47 skill, dışa aktarma, eklenti SDK testli |
+| 11 | ✅ | Yönlendirici ve paralel çalışma sahte modellerle testli |
+| 12 | ⚠️ | SaaS şablonu (15 test) ve VPS akışı testli. Bulut platformlarına ve iyzico'ya gerçek yayın yapılmadı |
+| 13-14 | ✅ | Güvenlik taramaları, yayın engeli, izleme ve olay döngüsü testli |
+| 15-16 | ⚠️ | Go/.deb/Docker/tar derlemeleri gerçek. APK, IPA, MSI, DMG, ISO tarifleri yazıldı ama SDK'lar, Mac ve QEMU olmadığı için çalıştırılmadı |
+| 17 | ⚠️ | Web gerçek. Android/iOS/masaüstü/VM yalnızca sahte cihazlarla denendi |
+| 18-19 | ✅/⚠️ | FFmpeg video, altyazı, müzik, ikon ve 3B testli. Görsel/ses üretme API'leri ve yerel GPU modelleri denenmedi |
+| 20 | ✅ | Devralma, golden master ve sağlık raporu testli. YunUSlu uygulamaları gelince gerçek denemesi yapılacak |
+| 21 | ✅ | Açılış sayfası, SEO, mağaza, sosyal, e-posta ve yasal taslaklar testli |
+| 22 | ✅ | Türkçe Excel CSV'si, sayı kayıt defteri ve kapı testli |
+| 23 | ✅ | Zamanlama, kaçırılan görev, onay ve dosya olayları testli. Bir haftalık gerçek çalışma henüz yapılmadı |
+| 24 | ✅/⚠️ | Öğrenme döngüsü ve Bench sahte modelle kanıtlandı, gizli testlerin çözülebilir olduğu doğrulandı. **Bench sonuç tablosu gerçek modellerle henüz üretilmedi** |
+| 25 | ✅/⚠️ | QR (OpenCV ile çözüldü), eşleştirme ve telefon sayfası Playwright'ta testli. Gerçek telefonda denenmedi. Yerel Kotlin uygulaması yok (PWA) |
+| 26 | ✅ | docx/xlsx/pptx okuma, düzenleme, formül hesaplama ve görüntü alma LibreOffice ile testli |
+
 ---
 
 ## 28. Açık sorular

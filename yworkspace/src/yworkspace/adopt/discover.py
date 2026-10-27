@@ -10,9 +10,12 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import tomllib
-
 from ..labs.security.scanners import SKIP_DIRS
+
+try:
+    import tomllib
+except ImportError:  # Python 3.10
+    tomllib = None
 
 LANG_EXT = {".py": "Python", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".ts": "TypeScript",
             ".tsx": "TypeScript", ".kt": "Kotlin", ".kts": "Kotlin", ".java": "Java", ".go": "Go", ".rs": "Rust",
@@ -447,7 +450,7 @@ def _dependency_issues(root: Path) -> list[tuple[str, str, str]]:
     if pkg.exists() and not any((root / f).exists() for f in ("package-lock.json", "yarn.lock", "pnpm-lock.yaml")):
         out.append(("medium", "dependencies", "package.json without a lock file."))
     pyproject = root / "pyproject.toml"
-    if pyproject.exists():
+    if pyproject.exists() and tomllib is not None:
         try:
             req_py = tomllib.loads(_read(pyproject)).get("project", {}).get("requires-python", "")
             m = re.search(r"(\d+)\.(\d+)", req_py)
