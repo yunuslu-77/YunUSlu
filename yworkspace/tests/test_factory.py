@@ -40,7 +40,9 @@ def test_go_cross_compile_and_deb(tmp_path, monkeypatch):
     assert "go-windows-exe" in detected and "go-macos-bin" in detected
     out = call("factory_build", {"recipes": ["go-linux-bin", "go-windows-exe", "go-macos-bin", "tar-gz"],
                                  "options": {"name": "merhaba", "version": "1.0.0"}}).text
-    assert "✓ go-linux-bin: dist/merhaba-linux-amd64" in out and "Linux binary ran: merhaba 1.0" in out
+    assert "✓ go-linux-bin: dist/merhaba-linux-amd64" in out
+    if sys.platform == "linux":  # elsewhere a Linux program can only be checked, not run
+        assert "Linux binary ran: merhaba 1.0" in out
     assert "valid Windows PE executable" in out and "valid macOS Mach-O" in out
     assert "✓ tar-gz" in out and "✗" not in out, out
     if docker_available() and shutil.which("dpkg-deb"):
