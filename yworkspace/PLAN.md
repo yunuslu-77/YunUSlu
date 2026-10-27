@@ -1153,7 +1153,7 @@ bugün nelerin otomatik testlerle kanıtlandığını, nelerin donanım, hesap y
 
 | # | Durum | Kanıt / eksik |
 |---|---|---|
-| 0-2 | ✅ | Dosya motoru, Docker sandbox ve süreçler testli. CI 3 işletim sisteminde çalışıyor |
+| 0-2 | ✅ | Dosya motoru, Docker sandbox ve süreçler testli. CI 3 işletim sisteminde × Python 3.10/3.13 çalışıyor (eksik `pyyaml` bağımlılığı bulunup düzeltildi) |
 | 3 | ⚠️ | Adaptörler ve metin protokolü sahte sunucularla testli. **Gerçek DeepSeek/Gemini anahtarıyla denenmedi** |
 | 4 | ✅ | Motor, roller ve kapılar sahte modelle uçtan uca testli. Gerçek modelle ölçüm Bench ile yapılacak |
 | 5 | ✅/⚠️ | MCP resmî istemciyle, eklenti gerçek Chromium'da testli. Masaüstü Köprüsü yalnızca sahte sürücüyle denendi |
