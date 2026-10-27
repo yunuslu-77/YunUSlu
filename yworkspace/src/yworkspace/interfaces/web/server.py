@@ -34,6 +34,7 @@ class Hub:
     def __init__(self) -> None:
         self.subs: list[queue.Queue] = []
         self.backlog: list[dict] = []
+        self.listeners: list = []  # called with every event, e.g. to keep it on disk
         self.lock = threading.Lock()
 
     def publish(self, event: dict) -> None:
@@ -42,6 +43,8 @@ class Hub:
             self.backlog = (self.backlog + [event])[-500:]
             for q in list(self.subs):
                 q.put(event)
+        for listener in self.listeners:
+            listener(event)
 
     def subscribe(self) -> queue.Queue:
         q: queue.Queue = queue.Queue()
@@ -136,7 +139,11 @@ class Runner:
 def _savings(st) -> float:
     from ...models.profiles import get_profile
     from ...models.router import savings
-    return round(savings(st.cost_by_model, get_profile("claude-opus")), 4)
+    try:
+        reference = get_profile("claude-opus")
+    except KeyError:  # an edition without cloud presets has nothing to compare against
+        return 0.0
+    return round(savings(st.cost_by_model, reference), 4)
 
 
 def _jsonable(d: dict) -> dict:
@@ -188,6 +195,21 @@ def create_app(cfg: Config | None = None, token: str | None = None, session_fact
         if not p.is_dir():
             raise HTTPException(404, "No such project.")
         return p
+
+    def remember(event: dict) -> None:
+        """Keeps each project's conversation on disk, so it is still there after a restart."""
+        name = event.get("project")
+        if not name or event.get("kind") in ("approval", "approval_done"):
+            return
+        try:
+            folder = projects_dir() / name / ".yw"
+            folder.mkdir(parents=True, exist_ok=True)
+            with open(folder / "conversation.jsonl", "a", encoding="utf-8") as f:
+                f.write(json.dumps(event, ensure_ascii=False) + "\n")
+        except OSError:
+            pass
+
+    hub.listeners.append(remember)
 
     @app.get("/", response_class=HTMLResponse)
     def index(t: str | None = None):
@@ -254,6 +276,19 @@ def create_app(cfg: Config | None = None, token: str | None = None, session_fact
                 "cost_usd": st.cost_usd, "tokens_in": st.tokens_in, "tokens_out": st.tokens_out,
                 "cost_by_model": st.cost_by_model, "saved_usd": _savings(st),
                 "journeys": json.loads(journeys.read_text("utf-8")) if journeys.exists() else []}
+
+    @app.get("/api/projects/{name}/conversation", dependencies=[Depends(auth)])
+    def conversation(name: str, limit: int = Query(1500, ge=1, le=10000)):
+        f = project_path(name) / ".yw" / "conversation.jsonl"
+        if not f.exists():
+            return []
+        out = []
+        for line in f.read_text("utf-8").splitlines()[-limit:]:
+            try:
+                out.append(json.loads(line))
+            except ValueError:
+                continue
+        return out
 
     @app.get("/api/projects/{name}/files", dependencies=[Depends(auth)])
     def files(name: str, path: str = Query(".")):

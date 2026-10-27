@@ -60,6 +60,11 @@ def test_api_auth_and_run(app):
     kinds = [e["kind"] for e in app.state.hub.backlog]
     assert "approval" in kinds and "run_finished" in kinds
     assert "hello.py" in c.get("/api/projects/Merhaba-App/files?path=.", headers=h).json()["listing"]
+    # the conversation is kept on disk for the next start, without the approvals
+    saved = c.get("/api/projects/Merhaba-App/conversation", headers=h).json()
+    assert saved[0]["kind"] == "run_started" and saved[-1]["kind"] == "run_finished"
+    assert not any(e["kind"].startswith("approval") for e in saved)
+    assert c.get("/api/projects/..%2Fetc/conversation", headers=h).status_code in (400, 404)
 
 
 def test_ui_in_browser(app, tmp_path):
@@ -78,21 +83,30 @@ def test_ui_in_browser(app, tmp_path):
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
         page.goto(f"http://127.0.0.1:{port}/?t=tok")
+        page.click("#openSidebar")  # on a phone the projects are behind the menu button
         page.wait_for_selector("#projectList li")
         page.click("#projectList li")
         page.fill("#goal", "merhaba modülü yaz")
-        page.click("#runBtn")
+        page.keyboard.press("Enter")
+        page.wait_for_selector(".msg-user", timeout=20000)
         page.wait_for_selector(".approval", timeout=20000)
         assert "Proje tanımını onaylıyor musun?" in page.inner_text(".approval h4")
         page.click(".approval button.primary")
-        page.wait_for_selector(".approval", timeout=20000)
+        page.wait_for_selector(".approval h4:has-text('Planı onaylıyor musun?')", timeout=20000)
         page.click(".approval button.primary")
-        page.wait_for_selector("#feed li.done", timeout=30000)
-        assert "Bitti" in page.inner_text("#feed li.done")
+        page.wait_for_selector(".done-box", timeout=30000)
+        assert "Bitti" in page.inner_text(".done-box h4")
+        assert page.locator(".tool.ok").count() >= 3, "tool calls are shown with their result"
+        page.click("#panelBtn")
         page.wait_for_function("document.querySelector('#tasks').innerText.includes('hello module')")
+        page.click("#closePanel")
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), "no horizontal scroll on phone"
+        page.reload()  # the conversation comes back from disk
+        page.wait_for_selector(".done-box", timeout=10000)
+        assert page.locator(".msg-user").count() == 1, "not shown twice (disk + live backlog)"
+        page.click("#openSidebar")
         page.click("#langBtn")
-        assert page.inner_text("#runBtn") == "Start"
+        assert page.input_value("#goal") == "" and "What shall we build" in page.get_attribute("#goal", "placeholder")
         assert not errors, errors
         b.close()
     server.should_exit = True

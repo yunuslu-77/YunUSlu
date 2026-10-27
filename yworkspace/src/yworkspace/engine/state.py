@@ -3,9 +3,22 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+
+
+def _retry(fn, tries: int = 50):
+    """On Windows a file being replaced cannot be opened, and one open for reading cannot be replaced:
+    the web interface reads the state while a run saves it, so each side waits a moment for the other."""
+    for i in range(tries):
+        try:
+            return fn()
+        except (PermissionError, json.JSONDecodeError):
+            if i == tries - 1:
+                raise
+            time.sleep(0.02)
 
 TODO, DOING, DONE, BLOCKED, DROPPED = "todo", "doing", "done", "blocked", "dropped"
 OPEN_STATES = {TODO, DOING, BLOCKED}
@@ -58,7 +71,7 @@ class ProjectState:
         f = d / "state.json"
         st = cls(Path(root))
         if f.exists():
-            data = json.loads(f.read_text("utf-8"))
+            data = _retry(lambda: json.loads(f.read_text("utf-8")))
             tasks = [Task(**t) for t in data.pop("tasks", [])]
             for k, v in data.items():
                 if k in cls.__dataclass_fields__ and k != "root":
@@ -74,7 +87,9 @@ class ProjectState:
         data = asdict(self)
         data.pop("root")
         data.pop("spec")
-        (self.dir / "state.json").write_text(json.dumps(data, indent=2, ensure_ascii=False), "utf-8")
+        tmp = self.dir / "state.json.tmp"  # replaced in one step: the web interface reads it while a run writes it
+        tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), "utf-8")
+        _retry(lambda: os.replace(tmp, self.dir / "state.json"))
         (self.dir / "SPEC.md").write_text(self.spec, "utf-8")
         (self.dir / "TASKS.md").write_text(self.tasks_text() + "\n", "utf-8")
 
