@@ -144,6 +144,13 @@ def _check_models(ctx: WizardContext) -> StepStatus:
         prof = get_profile(ctx.cfg.model)
     except KeyError as e:
         return StepStatus(False, str(e))
+    if prof.id.startswith("janas-"):
+        import httpx
+        try:
+            ok = httpx.get(f"{prof.base_url}/models", timeout=3).status_code == 200
+        except httpx.HTTPError:
+            ok = False
+        return StepStatus(ok, "Janas-LLM çalışıyor / running" if ok else "Janas-LLM çalışmıyor / not running")
     if prof.local:
         ok = _ok(["ollama", "list"]) if shutil.which("ollama") else False
         return StepStatus(ok, "Ollama hazır / ready" if ok else "Ollama kurulu değil / not installed")
@@ -154,6 +161,12 @@ def _check_models(ctx: WizardContext) -> StepStatus:
 def _model_actions(ctx: WizardContext) -> list[Action]:
     from ..models.profiles import get_profile
     prof = get_profile(ctx.cfg.model)
+    if prof.id.startswith("janas-"):
+        start = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "yWorkspace" / "janas" / "start-janas-server.cmd"
+        if start.exists():
+            return [Action("Janas-LLM'yi başlat / start Janas-LLM", ["cmd", "/c", "start", "", str(start)])]
+        return [Action("Janas-LLM'yi kur / install Janas-LLM", None,
+                       manual="powershell -ExecutionPolicy Bypass -File installer\\windows\\install-janas.ps1")]
     if prof.local:
         tag, why = recommend_local_model(ctx.info)
         acts = []
