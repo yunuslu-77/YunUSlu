@@ -111,7 +111,7 @@ def install(session) -> None:
         scr = state["screen"]
         evidence = []
         if scr is not None and hasattr(scr, "evidence_dir"):
-            evidence = sorted(str(p.relative_to(root)) for p in scr.evidence_dir.glob("step-*.png"))[-5:]
+            evidence = sorted(p.relative_to(root).as_posix() for p in scr.evidence_dir.glob("step-*.png"))[-5:]
         persona = scr.persona.key if scr is not None else ""
         store.add(JourneyResult(name, bool(passed), persona, notes, evidence))
         return f"Recorded journey '{name}': {'PASSED' if passed else 'FAILED'} ({len(evidence)} screenshots as evidence)."

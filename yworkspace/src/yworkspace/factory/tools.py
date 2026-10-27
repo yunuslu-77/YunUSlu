@@ -142,7 +142,7 @@ def install(session) -> None:
             for f in files:
                 vok, vmsg = verify.check(recipe.verify, f) if recipe.verify else (True, "")
                 size = f.stat().st_size / 1024
-                out.append(f"{'✓' if vok else '✗'} {rid}: {f.relative_to(root)} ({size:.0f} KB) — {vmsg}")
+                out.append(f"{'✓' if vok else '✗'} {rid}: {f.relative_to(root).as_posix()} ({size:.0f} KB) — {vmsg}")
         return "\n".join(out)
 
     def _deb(opts: dict) -> str:
@@ -151,12 +151,12 @@ def install(session) -> None:
             cands = [p for p in (root / "dist").glob("*linux-amd64*") if p.is_file()] if (root / "dist").exists() else []
             if not cands:
                 return "✗ deb: give options.binary (a built Linux binary in dist/)."
-            binary = str(cands[0].relative_to(root))
+            binary = cands[0].relative_to(root).as_posix()
         name = opts.get("name") or project.lower()
         deb = packaging.build_deb(root, name, str(opts.get("version", "0.1.0")), ws.resolve(binary),
                                   opts.get("description", name), opts.get("maintainer", "YunUSlu <noreply@example.com>"))
         ok, msg = verify.check("deb", deb)
-        return f"{'✓' if ok else '✗'} deb: {deb.relative_to(root)} — {msg}"
+        return f"{'✓' if ok else '✗'} deb: {deb.relative_to(root).as_posix()} — {msg}"
 
     def factory_verify(path: str, kind: str) -> str:
         ok, msg = verify.check(kind, ws.resolve(path))
@@ -176,7 +176,7 @@ def install(session) -> None:
                                             f"{publisher} <noreply@example.com>")]
         else:
             raise ToolError("bad_kind", "kind must be winget, homebrew or aur")
-        return "Wrote:\n" + "\n".join(str(f.relative_to(root)) for f in files)
+        return "Wrote:\n" + "\n".join(f.relative_to(root).as_posix() for f in files)
 
     def signing_list() -> str:
         keys = signing.list_keys(project)
