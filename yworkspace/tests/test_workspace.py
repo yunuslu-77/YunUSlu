@@ -35,25 +35,25 @@ def test_create_refuses_existing(ws):
 
 
 def test_overwrite_requires_read(ws, tmp_path):
-    (ws.root / "g.txt").write_text("orig")
+    (ws.root / "g.txt").write_text("orig", encoding="utf-8")
     assert err(ws.create, "g.txt", "new", overwrite=True).code == "not_read"
     ws.read("g.txt")
     ws.create("g.txt", "new", overwrite=True)
-    assert (ws.root / "g.txt").read_text() == "new"
+    assert (ws.root / "g.txt").read_text(encoding="utf-8") == "new"
 
 
 def test_edit_exact(ws):
     ws.create("m.py", "def add(a, b):\n    return a - b\n")
     out = ws.edit("m.py", "return a - b", "return a + b")
     assert "1 replacement" in out and "+    return a + b" in out
-    assert (ws.root / "m.py").read_text() == "def add(a, b):\n    return a + b\n"
+    assert (ws.root / "m.py").read_text(encoding="utf-8") == "def add(a, b):\n    return a + b\n"
 
 
 def test_edit_requires_read_and_detects_stale(ws):
-    (ws.root / "s.txt").write_text("hello\n")
+    (ws.root / "s.txt").write_text("hello\n", encoding="utf-8")
     assert err(ws.edit, "s.txt", "hello", "bye").code == "not_read"
     ws.read("s.txt")
-    (ws.root / "s.txt").write_text("hello world\n")
+    (ws.root / "s.txt").write_text("hello world\n", encoding="utf-8")
     assert err(ws.edit, "s.txt", "hello", "bye").code == "stale"
 
 
@@ -62,7 +62,7 @@ def test_edit_ambiguous_and_replace_all(ws):
     e = err(ws.edit, "d.txt", "x", "y")
     assert e.code == "ambiguous" and "3 times" in e.message
     ws.edit("d.txt", "x", "y", replace_all=True)
-    assert (ws.root / "d.txt").read_text() == "y\ny\ny\n"
+    assert (ws.root / "d.txt").read_text(encoding="utf-8") == "y\ny\ny\n"
 
 
 def test_edit_whitespace_suggestion(ws):
@@ -82,9 +82,9 @@ def test_multi_edit_atomic(ws):
     ws.create("t.txt", "one\ntwo\nthree\n")
     e = err(ws.multi_edit, "t.txt", [{"find": "one", "replace": "1"}, {"find": "zzz", "replace": "2"}])
     assert "no edits were applied" in e.message
-    assert (ws.root / "t.txt").read_text() == "one\ntwo\nthree\n"
+    assert (ws.root / "t.txt").read_text(encoding="utf-8") == "one\ntwo\nthree\n"
     ws.multi_edit("t.txt", [{"find": "one", "replace": "1"}, {"find": "three", "replace": "3"}])
-    assert (ws.root / "t.txt").read_text() == "1\ntwo\n3\n"
+    assert (ws.root / "t.txt").read_text(encoding="utf-8") == "1\ntwo\n3\n"
 
 
 def test_preserves_crlf_and_bom(ws):
@@ -96,9 +96,9 @@ def test_preserves_crlf_and_bom(ws):
 
 def test_outside_and_denied(ws):
     assert err(ws.read, "../x").code == "outside_workspace"
-    (ws.root / ".env").write_text("SECRET=1")
+    (ws.root / ".env").write_text("SECRET=1", encoding="utf-8")
     assert err(ws.read, ".env").code == "denied"
-    (ws.root / ".env.example").write_text("SECRET=")
+    (ws.root / ".env.example").write_text("SECRET=", encoding="utf-8")
     assert "SECRET=" in ws.read(".env.example")
     assert err(ws.read, ".yw/history/journal.jsonl").code == "protected"
 
@@ -106,7 +106,7 @@ def test_outside_and_denied(ws):
 @pytest.mark.skipif(os.name == "nt", reason="symlinks need admin rights on Windows")
 def test_symlink_escape(ws, tmp_path):
     outside = tmp_path / "secret.txt"
-    outside.write_text("top secret")
+    outside.write_text("top secret", encoding="utf-8")
     (ws.root / "link.txt").symlink_to(outside)
     assert err(ws.read, "link.txt").code == "outside_workspace"
 
@@ -120,14 +120,14 @@ def test_undo_edit_create_delete_move(ws):
     ws.create("u.txt", "a\n")
     ws.edit("u.txt", "a", "b")
     ws.undo()
-    assert (ws.root / "u.txt").read_text() == "a\n"
+    assert (ws.root / "u.txt").read_text(encoding="utf-8") == "a\n"
     ws.undo()
     assert not (ws.root / "u.txt").exists()
     ws.create("v.txt", "v\n")
     ws.delete("v.txt")
     assert not (ws.root / "v.txt").exists()
     ws.undo()
-    assert (ws.root / "v.txt").read_text() == "v\n"
+    assert (ws.root / "v.txt").read_text(encoding="utf-8") == "v\n"
     ws.read("v.txt")
     ws.move("v.txt", "sub/w.txt")
     assert (ws.root / "sub/w.txt").exists()
@@ -137,7 +137,7 @@ def test_undo_edit_create_delete_move(ws):
 
 def test_undo_conflict(ws):
     ws.create("c.txt", "1\n")
-    (ws.root / "c.txt").write_text("changed by someone\n")
+    (ws.root / "c.txt").write_text("changed by someone\n", encoding="utf-8")
     assert err(ws.undo).code == "conflict"
 
 

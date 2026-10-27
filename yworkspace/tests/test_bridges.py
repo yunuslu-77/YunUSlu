@@ -79,7 +79,7 @@ def test_bridge_runner_full_loop(tmp_path):
     ])
     runner = BridgeRunner(app, profile(), TextSession(build_registry(ws), goal="create a.py"), poll=0.01)
     assert runner.run() == "done"
-    assert (ws.root / "a.py").read_text() == "print(1)\n"
+    assert (ws.root / "a.py").read_text(encoding="utf-8") == "print(1)\n"
     assert "<<<yw:" in app.sent[0]  # opening carried the protocol
     assert app.clip == "user's own clipboard"  # clipboard restored
 

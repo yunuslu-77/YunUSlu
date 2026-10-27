@@ -12,6 +12,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import zipdir
+
 EXTRA: list = []  # plugins add recipes here
 
 
@@ -228,9 +230,8 @@ def all_recipes() -> list[Recipe]:
                lambda root: (root / "index.html").exists() or (root / "dist" / "index.html").exists()
                or "vite" in _deps(root),
                lambda root, o: (["npm ci", "npm run build"] if (root / "package.json").exists() else []) + [
-                   f"cd {o.get('dir', 'dist' if (root / 'dist').exists() or (root / 'package.json').exists() else '.')}"
-                   f" && zip -qr {'..' if (root / 'dist').exists() or (root / 'package.json').exists() else '.'}"
-                   f"/{_name(root, o)}-web.zip . -x '.yw/*' -x '.git/*' -x '*.zip'"],
+                   zipdir.command(o.get("dir", "dist" if (root / "dist").exists() or (root / "package.json").exists()
+                                         else "."), f"{_name(root, o)}-web.zip")],
                ["*-web.zip"], "host", "web", tested_here=True),
         Recipe("wasm-rust", "wasm", "web", "Rust → WebAssembly (wasm-pack)", _has("Cargo.toml"),
                lambda root, o: ["cargo install wasm-pack", "wasm-pack build --release --target web"], ["pkg/*.wasm"],
@@ -238,11 +239,11 @@ def all_recipes() -> list[Recipe]:
         # ------------------------------------------------------------------ extensions
         Recipe("chrome-extension", "zip", "extension", "Chrome / Edge / Brave extension (zip)",
                lambda root: (root / "manifest.json").exists() and "manifest_version" in (root / "manifest.json").read_text("utf-8"),
-               lambda root, o: [f"zip -qr {_name(root, o)}-chrome.zip . -x '.yw/*' -x '.git/*' -x '*.zip' -x '*.xpi'"],
+               lambda root, o: [zipdir.command(".", f"{_name(root, o)}-chrome.zip")],
                ["*-chrome.zip"], "host", "extension", tested_here=True),
         Recipe("firefox-extension", "xpi", "extension", "Firefox extension (xpi)",
                lambda root: (root / "manifest.json").exists() and "manifest_version" in (root / "manifest.json").read_text("utf-8"),
-               lambda root, o: [f"zip -qr {_name(root, o)}-firefox.xpi . -x '.yw/*' -x '.git/*' -x '*.zip' -x '*.xpi'"],
+               lambda root, o: [zipdir.command(".", f"{_name(root, o)}-firefox.xpi")],
                ["*-firefox.xpi"], "host", "extension", ["Mozilla add-on signing (web-ext sign) to install permanently"],
                tested_here=True),
         Recipe("safari-extension", "safari", "extension", "Safari extension (needs a Mac + Xcode)",
@@ -258,8 +259,7 @@ def all_recipes() -> list[Recipe]:
                "zip", network=True),
         Recipe("wordpress-plugin", "zip", "extension", "WordPress plugin (zip)",
                lambda root: any("Plugin Name:" in p.read_text("utf-8", "ignore") for p in root.glob("*.php")),
-               lambda root, o: [f"cd .. && zip -qr {root.name}/{_name(root, o)}-wordpress.zip {root.name} "
-                                f"-x '{root.name}/.yw/*' -x '{root.name}/.git/*' -x '*.zip'"],
+               lambda root, o: [zipdir.command(".", f"{_name(root, o)}-wordpress.zip", root.name)],
                ["*-wordpress.zip"], "host", "zip", tested_here=True),
         # ------------------------------------------------------------------ packages
         Recipe("python-wheel", "wheel", "package", "Python wheel + sdist (PyPI)", _has("pyproject.toml", "setup.py"),

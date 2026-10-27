@@ -7,6 +7,7 @@ import time
 
 from ..core.errors import ToolError
 from ..extensions import register
+from ..sandbox.local import shell_args
 from ..tools.registry import EXTERNAL, SAFE, WRITE, Tool, obj
 from .targets import all_targets
 
@@ -14,7 +15,8 @@ S = {"type": "string"}
 
 
 def run_host(cmd: str, cwd, timeout: int = 1800) -> tuple[int, str]:
-    r = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True, timeout=timeout,
+    args, use_shell = shell_args(cmd)
+    r = subprocess.run(args, shell=use_shell, cwd=cwd, capture_output=True, text=True, timeout=timeout,
                        encoding="utf-8", errors="replace")
     return r.returncode, (r.stdout + r.stderr)[-8000:]
 

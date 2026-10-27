@@ -18,11 +18,21 @@ DEFAULT_MASKS = [
 CHECK_SCRIPT = '''#!/usr/bin/env python3
 """Golden master check written by yWorkspace: re-runs each recorded command and compares its output.
 Run: python tests/golden/check.py   (exit code 1 = behaviour changed)"""
-import json, re, subprocess, sys
+import json, os, re, shutil, subprocess, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
+
+
+def shell(command):
+    """bash everywhere (Git Bash on Windows), like yWorkspace itself."""
+    if sys.platform == "win32":
+        bash = os.path.join(os.environ.get("ProgramFiles", r"C:\\Program Files"), "Git", "bin", "bash.exe")
+        bash = bash if os.path.exists(bash) else shutil.which("bash")
+        if bash and "system32" not in bash.lower():
+            return [bash, "-c", command], False
+    return command, True
 
 
 def normalize(text, masks):
@@ -35,7 +45,9 @@ def main():
     cases = json.loads((HERE / "golden.json").read_text("utf-8"))
     failed = 0
     for c in cases:
-        r = subprocess.run(c["command"], shell=True, cwd=ROOT, capture_output=True, text=True, timeout=c.get("timeout", 300))
+        args, use_shell = shell(c["command"])
+        r = subprocess.run(args, shell=use_shell, cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=c.get("timeout", 300))
         got = normalize(f"exit={r.returncode}\\n{r.stdout}\\n{r.stderr if c.get('stderr', True) else ''}", c["masks"])
         want = (HERE / f"{c['name']}.out").read_text("utf-8")
         if got != want:

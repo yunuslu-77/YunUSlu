@@ -5,18 +5,19 @@ from yworkspace.config import Config
 
 def legacy(root):
     (root / "shop").mkdir(parents=True)
-    (root / "shop/__init__.py").write_text("")
+    (root / "shop/__init__.py").write_text("", encoding="utf-8")
     (root / "shop/models.py").write_text(
-        "from sqlalchemy import Column, Integer, String\nfrom .db import Base\n\n\nclass Order(Base):\n"
-        "    __tablename__ = 'orders'\n    id = Column(Integer, primary_key=True)\n    item = Column(String)\n")
-    (root / "shop/db.py").write_text("import os\nURL = os.environ['DATABASE_URL']\nBase = object\n")
+        "try:\n    from sqlalchemy import Column, Integer, String\nexcept ImportError:  # the CLI works without it\n"
+        "    Column = Integer = String = lambda *a, **k: None\nfrom .db import Base\n\n\nclass Order(Base):\n"
+        "    __tablename__ = 'orders'\n    id = Column(Integer, primary_key=True)\n    item = Column(String)\n", encoding="utf-8")
+    (root / "shop/db.py").write_text("import os\nURL = os.environ['DATABASE_URL']\nBase = object\n", encoding="utf-8")
     (root / "shop/pricing.py").write_text("from shop.models import Order\n\n\ndef total(prices, vat=0.2):\n"
-                                          "    # TODO: rounding rules\n    return round(sum(prices) * (1 + vat), 2)\n")
+                                          "    # TODO: rounding rules\n    return round(sum(prices) * (1 + vat), 2)\n", encoding="utf-8")
     (root / "cli.py").write_text("import sys\nfrom shop.pricing import total\n\nif __name__ == \"__main__\":\n"
-                                 "    print('total', total([float(x) for x in sys.argv[1:]]))\n")
-    (root / "requirements.txt").write_text("sqlalchemy\nfastapi==0.110.0\n")
+                                 "    print('total', total([float(x) for x in sys.argv[1:]]))\n", encoding="utf-8")
+    (root / "requirements.txt").write_text("sqlalchemy\nfastapi==0.110.0\n", encoding="utf-8")
     (root / "schema.sql").write_text("CREATE TABLE customers (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL,\n"
-                                     "  email TEXT,\n  PRIMARY KEY (id)\n);\n")
+                                     "  email TEXT,\n  PRIMARY KEY (id)\n);\n", encoding="utf-8")
 
 
 def test_discover_map_health(tmp_path):
@@ -38,9 +39,9 @@ def test_discover_map_health(tmp_path):
 
 def test_js_imports(tmp_path):
     (tmp_path / "src/lib").mkdir(parents=True)
-    (tmp_path / "src/index.ts").write_text("import { a } from './lib/a'\nconst b = require('../x')\n")
-    (tmp_path / "src/lib/a.ts").write_text("export const a = 1\nimport('./b')\n")
-    (tmp_path / "src/lib/b.js").write_text("")
+    (tmp_path / "src/index.ts").write_text("import { a } from './lib/a'\nconst b = require('../x')\n", encoding="utf-8")
+    (tmp_path / "src/lib/a.ts").write_text("export const a = 1\nimport('./b')\n", encoding="utf-8")
+    (tmp_path / "src/lib/b.js").write_text("", encoding="utf-8")
     g = dsc.js_imports(tmp_path)
     assert g["src/index.ts"] == {"src/lib/a.ts"} and g["src/lib/a.ts"] == {"src/lib/b.js"}
 
@@ -57,11 +58,11 @@ def test_adopt_tools_end_to_end(tmp_path, monkeypatch):
     assert "WARNING: the command failed" in call("adopt_golden", {"name": "x", "command": "python cli.py 1"}).text
     rec = call("adopt_golden", {"name": "toplam", "command": "DATABASE_URL=sqlite:// python cli.py 10 5.5"})
     assert not rec.is_error, rec.text
-    assert "total 18.6" in (root / "tests/golden/toplam.out").read_text()
+    assert "total 18.6" in (root / "tests/golden/toplam.out").read_text(encoding="utf-8")
     assert (root / "tests/test_golden_master.py").exists()
     assert "behave exactly as recorded" in call("adopt_golden_check", {}).text
     pricing = root / "shop/pricing.py"
-    pricing.write_text(pricing.read_text().replace("round(", "int(").replace(", 2)", ")"))
+    pricing.write_text(pricing.read_text(encoding="utf-8").replace("round(", "int(").replace(", 2)", ")"), encoding="utf-8")
     changed = call("adopt_golden_check", {}).text
     assert "BEHAVIOUR CHANGED" in changed and "total 18" in changed
     import subprocess
@@ -70,8 +71,8 @@ def test_adopt_tools_end_to_end(tmp_path, monkeypatch):
     assert r.returncode == 1 and "CHANGED: toplam" in r.stdout
     docs = call("adopt_docs", {}).text
     assert "README.md" in docs and ".env.example" in docs
-    assert "DATABASE_URL=" in (root / ".env.example").read_text()
-    assert "erDiagram" in (root / "docs/ARCHITECTURE.md").read_text()
+    assert "DATABASE_URL=" in (root / ".env.example").read_text(encoding="utf-8")
+    assert "erDiagram" in (root / "docs/ARCHITECTURE.md").read_text(encoding="utf-8")
     health = call("adopt_health", {}).text
     assert "Health score" in health
     mig = call("adopt_migration", {"goal": "SQLAlchemy 2", "steps": ["typed models", "new session API"]}).text

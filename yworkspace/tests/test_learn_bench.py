@@ -84,13 +84,13 @@ def test_yworkspace_mode_and_report(tmp_path):
     md = br.markdown([r, bad])
     assert "| fake | yworkspace-balanced | 1/2 (50%)" in md
     j, m = br.write_results([r], tmp_path / "out")
-    assert j.exists() and m.read_text().startswith("# yWorkspace Bench")
+    assert j.exists() and m.read_text(encoding="utf-8").startswith("# yWorkspace Bench")
 
 
 def test_learning_loop(tmp_path, monkeypatch):
     monkeypatch.setenv("YW_HOME", str(tmp_path / "home"))
     sess = build_session(tmp_path / "p", Config(sandbox="local", model="deepseek-chat"), with_engine=False)
-    (sess.workspace.root / "a.py").write_text("x = 1\nx = 1\n")
+    (sess.workspace.root / "a.py").write_text("x = 1\nx = 1\n", encoding="utf-8")
     call = sess.registry.call
     call("read", {"path": "a.py"})
     for _ in range(3):

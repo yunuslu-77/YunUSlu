@@ -10,6 +10,7 @@ import urllib.parse
 from pathlib import Path
 
 from ..core.errors import ToolError
+from ..core.gitutil import git_env
 from ..engine import checks as checks_mod
 from ..extensions import register
 from .registry import EXTERNAL, SAFE, WRITE, Tool, obj
@@ -20,7 +21,7 @@ S = {"type": "string"}
 def _git(root: Path, *args: str, timeout: int = 60) -> str:
     try:
         r = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, timeout=timeout,
-                           encoding="utf-8", errors="replace")
+                           encoding="utf-8", errors="replace", env=git_env(root))
     except FileNotFoundError as e:
         raise ToolError("no_git", "git is not installed on this computer.") from e
     out = (r.stdout + r.stderr).strip()

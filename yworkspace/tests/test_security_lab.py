@@ -29,10 +29,10 @@ def calc(expr):
 def make_vuln(root: Path):
     root.mkdir(parents=True)
     subprocess.run(["git", "init", "-q"], cwd=root)
-    (root / "app.py").write_text(VULN_PY.replace("FAKE_KEY", FAKE_STRIPE_KEY))
-    (root / "ui.js").write_text("el.innerHTML = userInput;\n")
-    (root / "Dockerfile").write_text("FROM python\nCOPY . .\nCMD python app.py\n")
-    (root / ".env").write_text("SECRET=abc\n")
+    (root / "app.py").write_text(VULN_PY.replace("FAKE_KEY", FAKE_STRIPE_KEY), encoding="utf-8")
+    (root / "ui.js").write_text("el.innerHTML = userInput;\n", encoding="utf-8")
+    (root / "Dockerfile").write_text("FROM python\nCOPY . .\nCMD python app.py\n", encoding="utf-8")
+    (root / ".env").write_text("SECRET=abc\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=root)
 
 
@@ -60,7 +60,7 @@ def test_gate_and_deploy_block(tmp_path, monkeypatch):
     assert "CRITICAL" in out and "Fix:" in out
     gate = next(g for g in sess.engine.extra_gates if "security" in g(sess.engine).name)
     assert not gate(sess.engine).passed
-    (root / ".env.production").write_text("x=1\n")
+    (root / ".env.production").write_text("x=1\n", encoding="utf-8")
     r = sess.registry.call("deploy_run", {"name": "vps", "options": {"host": "h", "domain": "d.example"}})
     assert r.is_error and ("security_block" in r.text or "denied" in r.text)
 

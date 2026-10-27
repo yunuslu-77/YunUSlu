@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import shlex
+import shutil
 import signal
 import subprocess
 import sys
@@ -12,6 +14,30 @@ from pathlib import Path
 
 from ..core.errors import ToolError
 from .docker import _NAME_RX, RunResult, clip
+
+
+def windows_bash() -> str | None:
+    """Git for Windows' bash, so the same shell commands work on every system. WSL's bash.exe is skipped:
+    it runs inside Linux and cannot see Windows paths the same way."""
+    if sys.platform != "win32":
+        return None
+    for base in (os.environ.get("ProgramFiles", r"C:\Program Files"), os.environ.get("ProgramW6432", ""),
+                 os.environ.get("LOCALAPPDATA", "") + r"\Programs"):
+        p = Path(base) / "Git" / "bin" / "bash.exe"
+        if base and p.exists():
+            return str(p)
+    found = shutil.which("bash")
+    if found and "system32" not in found.lower():
+        return found
+    return None
+
+
+def shell_args(command: str) -> tuple[list[str] | str, bool]:
+    """(args, shell) for subprocess: bash everywhere (Git Bash on Windows), cmd.exe only as a last resort."""
+    bash = windows_bash()
+    if bash:
+        return [bash, "-c", command], False
+    return command, True
 
 
 @dataclass
@@ -42,7 +68,8 @@ class LocalSandbox:
             raise ToolError("empty_command", "The command is empty.")
         start = time.monotonic()
         try:
-            r = subprocess.run(command, shell=True, cwd=self._cwd(cwd), capture_output=True, text=True,
+            args, use_shell = shell_args(command)
+            r = subprocess.run(args, shell=use_shell, cwd=self._cwd(cwd), capture_output=True, text=True,
                                timeout=timeout, encoding="utf-8", errors="replace")
         except subprocess.TimeoutExpired as e:
             out = (e.stdout or "") if isinstance(e.stdout, str) else ""
@@ -56,7 +83,8 @@ class LocalSandbox:
             raise ToolError("already_running", f"A process named {name} is already running.")
         log = open(self.logdir / f"{name}.log", "w", encoding="utf-8")
         kwargs = {"start_new_session": True} if sys.platform != "win32" else {}
-        self._procs[name] = subprocess.Popen(command, shell=True, cwd=self._cwd(cwd), stdout=log,
+        args, use_shell = shell_args(command)
+        self._procs[name] = subprocess.Popen(args, shell=use_shell, cwd=self._cwd(cwd), stdout=log,
                                              stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, **kwargs)
         time.sleep(1.0)
         state = "running" if self._procs[name].poll() is None else "exited immediately"
@@ -73,8 +101,8 @@ class LocalSandbox:
             return f"{name} is not running."
         if sys.platform != "win32":
             os.killpg(p.pid, signal.SIGTERM)
-        else:
-            p.terminate()
+        else:  # end the whole tree (a shell and the server it started)
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(p.pid)], capture_output=True)
         try:
             p.wait(5)
         except subprocess.TimeoutExpired:
@@ -90,7 +118,7 @@ class LocalSandbox:
         return ""
 
     def install(self, manager: str, packages: list[str], timeout: int = 900) -> RunResult:
-        cmd = {"pip": f"{sys.executable} -m pip install", "npm": "npm install", "pnpm": "pnpm add"}.get(manager)
+        cmd = {"pip": f"{shlex.quote(sys.executable)} -m pip install", "npm": "npm install", "pnpm": "pnpm add"}.get(manager)
         if not cmd:
             raise ToolError("bad_manager", f"{manager} is not available outside Docker.")
         return self.run(f"{cmd} {' '.join(packages)}", timeout=timeout)

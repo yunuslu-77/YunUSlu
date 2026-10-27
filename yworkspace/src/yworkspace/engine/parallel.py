@@ -13,12 +13,14 @@ import threading
 from dataclasses import replace
 from pathlib import Path
 
+from ..core.gitutil import git_env
 from ..core.workspace import Workspace
 from .state import DONE, ProjectState
 
 
 def _git(root: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess:
-    r = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, timeout=120)
+    r = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, timeout=120, env=git_env(root),
+                       encoding="utf-8", errors="replace")
     if check and r.returncode != 0:
         raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()[:500]}")
     return r

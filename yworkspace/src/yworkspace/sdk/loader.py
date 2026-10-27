@@ -215,7 +215,7 @@ def set_enabled(name: str, enabled: bool) -> None:
     if enabled:
         flag.unlink(missing_ok=True)
     else:
-        flag.write_text("")
+        flag.write_text("", encoding="utf-8")
 
 
 SCAFFOLD_YAML = """name: {name}

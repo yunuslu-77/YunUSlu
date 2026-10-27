@@ -114,7 +114,9 @@ class FakePG:
         return Img()
 
 
-def test_desktop_uses_window_relative_elements_and_absolute_clicks(tmp_path):
+def test_desktop_uses_window_relative_elements_and_absolute_clicks(tmp_path, monkeypatch):
+    import yworkspace.operator.desktop as desktop_mod
+    monkeypatch.setattr(desktop_mod.sys, "platform", "linux")  # the fake backend speaks the UIA/AT-SPI shape
     pg = FakePG()
     scr = DesktopScreen(tmp_path, PERSONAS["first_time"], backend=FakeA11y(), pyautogui=pg)
     text, _ = scr.open("hesap")

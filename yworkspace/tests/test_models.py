@@ -207,7 +207,7 @@ def test_loop_native_edits_real_file(tmp_path):
     ])
     res = AgentLoop(prov, r).run([Message("system", "s"), Message("user", "fix add")])
     assert res.stop == "finished" and res.final_text == "Fixed the bug."
-    assert (ws.root / "calc.py").read_text() == "def add(a, b):\n    return a + b\n"
+    assert (ws.root / "calc.py").read_text(encoding="utf-8") == "def add(a, b):\n    return a + b\n"
     assert res.usage.input_tokens == 30
 
 
@@ -226,7 +226,7 @@ def test_loop_text_mode_with_recovery(tmp_path):
     assert loop.mode == TEXT
     res = loop.run([Message("system", "s"), Message("user", "fix")])
     assert res.stop == "finished"
-    assert "return a + b" in (ws.root / "calc.py").read_text()
+    assert "return a + b" in (ws.root / "calc.py").read_text(encoding="utf-8")
     assert "yWorkspace text protocol" in prov.seen[0][0].content
 
 

@@ -11,7 +11,7 @@ def test_text_session_roundtrip(tmp_path):
     assert "make a.txt" in ts.opening() and "<<<yw:" in ts.opening()
     r = ts.handle('<<<yw:create path="a.txt">>>\nhi\n>>>end')
     assert r.calls == 1 and not r.done and 'ok="true"' in r.reply_to_ai
-    assert (ws.root / "a.txt").read_text() == "hi\n"
+    assert (ws.root / "a.txt").read_text(encoding="utf-8") == "hi\n"
     assert ts.handle("All finished.").done
 
 

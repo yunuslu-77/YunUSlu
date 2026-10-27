@@ -42,7 +42,7 @@ def test_chain_approval_and_history(tmp_path, monkeypatch):
     sess, sent = make(tmp_path, monkeypatch)
     call = sess.registry.call
     root = sess.workspace.root
-    (root / "notlar.txt").write_text("satış: 42\n")
+    (root / "notlar.txt").write_text("satış: 42\n", encoding="utf-8")
     bad = call("automation_create", {"name": "x", "steps": [{"tool": "yok"}], "schedule": "bazen"})
     assert bad.is_error and "unknown tool yok" in bad.text and "5 cron fields" in bad.text
     r = call("automation_create", {"name": "haftalık rapor", "schedule": "weekly", "steps": [
@@ -73,7 +73,7 @@ def test_schedule_catch_up_and_file_events(tmp_path, monkeypatch):
     inbox = rn.new("gelen", [{"tool": "read", "args": {"path": "{files}"}}], event="file_added",
                    pattern="inbox/*.csv")
     (root / "inbox").mkdir()
-    (root / "inbox/eski.csv").write_text("a\n")
+    (root / "inbox/eski.csv").write_text("a\n", encoding="utf-8")
     inbox.snapshot = rn._files(root, "inbox/*.csv")
     items.append(inbox)
     store.save(items)
@@ -84,7 +84,7 @@ def test_schedule_catch_up_and_file_events(tmp_path, monkeypatch):
     got = {a.name: a for a in store.load()}
     assert got["gece-ask"].pending["ask"] == "catch_up" and got["gece-skip"].history[-1]["status"] == "skipped"
     assert not r.tick()  # nothing new
-    (root / "inbox/yeni.csv").write_text("ürün,adet\nkahve,3\n")
+    (root / "inbox/yeni.csv").write_text("ürün,adet\nkahve,3\n", encoding="utf-8")
     time.sleep(0.01)
     lines = r.tick()
     assert lines == ["gelen: ok (file_added: inbox/yeni.csv)"], lines

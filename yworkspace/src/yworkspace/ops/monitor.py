@@ -73,7 +73,10 @@ class MonitorResult:
 
 def _sh(cmd: str, timeout: int = 120) -> tuple[int, str]:
     try:
-        r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout, errors="replace")
+        from ..sandbox.local import shell_args
+        args, use_shell = shell_args(cmd)
+        r = subprocess.run(args, shell=use_shell, capture_output=True, text=True, timeout=timeout,
+                           encoding="utf-8", errors="replace")
         return r.returncode, r.stdout + r.stderr
     except subprocess.TimeoutExpired:
         return 124, "timed out"

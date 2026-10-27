@@ -12,6 +12,7 @@ from pathlib import Path
 
 from ..core.errors import ToolError
 from ..extensions import register
+from ..sandbox.local import shell_args
 from ..tools.registry import EXTERNAL, SAFE, WRITE, Tool, obj
 from . import packaging, signing, stores, verify
 from .recipes import Recipe, applicable, by_id
@@ -193,7 +194,9 @@ def install(session) -> None:
         cmd = stores.upload_command(store, **fields)
         if not cmd:
             return "This store has no command-line upload:\n" + "\n".join(stores.STORES[store]["needs"])
-        r = subprocess.run(cmd, shell=True, cwd=root, capture_output=True, text=True, timeout=3600)
+        args, use_shell = shell_args(cmd)
+        r = subprocess.run(args, shell=use_shell, cwd=root, capture_output=True, text=True, timeout=3600,
+                           encoding="utf-8", errors="replace")
         if r.returncode != 0:
             raise ToolError("upload_failed", (r.stdout + r.stderr)[-4000:],
                             "Prerequisites: " + "; ".join(stores.STORES[store]["needs"]))

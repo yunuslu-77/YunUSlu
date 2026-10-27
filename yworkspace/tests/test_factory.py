@@ -1,6 +1,7 @@
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -32,8 +33,8 @@ def test_catalog_covers_the_plan():
 def test_go_cross_compile_and_deb(tmp_path, monkeypatch):
     sess = session(tmp_path, monkeypatch, "merhaba")
     root = sess.workspace.root
-    (root / "go.mod").write_text("module merhaba\n\ngo 1.21\n")
-    (root / "main.go").write_text('package main\n\nimport "fmt"\n\nfunc main() { fmt.Println("merhaba 1.0") }\n')
+    (root / "go.mod").write_text("module merhaba\n\ngo 1.21\n", encoding="utf-8")
+    (root / "main.go").write_text('package main\n\nimport "fmt"\n\nfunc main() { fmt.Println("merhaba 1.0") }\n', encoding="utf-8")
     call = sess.registry.call
     detected = call("factory_detect", {}).text
     assert "go-windows-exe" in detected and "go-macos-bin" in detected
@@ -55,7 +56,7 @@ def test_docker_image_build_and_health(tmp_path, monkeypatch):
     (root / "Dockerfile").write_text(
         "FROM mirror.gcr.io/library/python:3.12-slim\nRUN useradd -m app\nUSER app\nWORKDIR /home/app\n"
         "RUN mkdir health && echo ok > health/index.html\nEXPOSE 8000\n"
-        "CMD [\"python\", \"-m\", \"http.server\", \"8000\"]\n")
+        "CMD [\"python\", \"-m\", \"http.server\", \"8000\"]\n", encoding="utf-8")
     monkeypatch.setenv("NO_PROXY", "127.0.0.1,localhost")
     out = sess.registry.call("factory_build", {"recipes": ["docker-image"],
                                                "options": {"name": "webimg", "port": 8000}}).text
@@ -74,25 +75,27 @@ def test_extension_wheel_npm_docs_manifests(tmp_path, monkeypatch):
     sess2 = session(tmp_path, monkeypatch, "lib")
     r2 = sess2.workspace.root
     (r2 / "pyproject.toml").write_text('[build-system]\nrequires = ["setuptools>=61"]\nbuild-backend = '
-                                       '"setuptools.build_meta"\n[project]\nname = "kucuk"\nversion = "0.1.0"\n')
-    (r2 / "kucuk.py").write_text("def selam():\n    return 'selam'\n")
-    (r2 / "package.json").write_text(json.dumps({"name": "kucuk", "version": "0.1.0"}))
-    (r2 / "README.md").write_text("# Küçük\n\nMerhaba dünya.\n")
-    out = sess2.registry.call("factory_build", {"recipes": ["python-wheel", "npm-package", "docs-epub", "docs-docx"],
+                                       '"setuptools.build_meta"\n[project]\nname = "kucuk"\nversion = "0.1.0"\n', encoding="utf-8")
+    (r2 / "kucuk.py").write_text("def selam():\n    return 'selam'\n", encoding="utf-8")
+    (r2 / "package.json").write_text(json.dumps({"name": "kucuk", "version": "0.1.0"}), encoding="utf-8")
+    (r2 / "README.md").write_text("# Küçük\n\nMerhaba dünya.\n", encoding="utf-8")
+    docs = ["docs-epub", "docs-docx"] if shutil.which("pandoc") else []
+    out = sess2.registry.call("factory_build", {"recipes": ["python-wheel", "npm-package", *docs],
                                                 "options": {"name": "kucuk"}}).text
     assert "wheel installs into a clean environment" in out and "npm package contains package.json" in out
-    assert "docs-epub" in out and "docs-docx" in out and "✗" not in out, out
+    assert all(d in out for d in docs) and "✗" not in out, out
     m = sess2.registry.call("package_manifests", {"kind": "homebrew", "version": "0.1.0",
                                                   "url": "https://example.com/kucuk.tar.gz"}).text
     assert "packaging/homebrew/lib.rb" in m
     assert "PackageIdentifier" in (sess2.registry.call("package_manifests", {"kind": "winget", "version": "0.1.0",
                                    "url": "https://example.com/s.exe"}) and
-                                   (r2 / "packaging/winget/YunUSlu.lib.installer.yaml").read_text())
+                                   (r2 / "packaging/winget/YunUSlu.lib.installer.yaml").read_text(encoding="utf-8"))
 
 
+@pytest.mark.skipif(sys.platform == "darwin", reason="on a Mac the recipe really runs")
 def test_mac_only_recipe_explains_instead_of_failing(tmp_path, monkeypatch):
     sess = session(tmp_path, monkeypatch, "fl")
-    (sess.workspace.root / "pubspec.yaml").write_text("name: fl\ndependencies:\n  flutter:\n    sdk: flutter\n")
+    (sess.workspace.root / "pubspec.yaml").write_text("name: fl\ndependencies:\n  flutter:\n    sdk: flutter\n", encoding="utf-8")
     out = sess.registry.call("factory_build", {"recipes": ["flutter-ipa"]}).text
     assert "must be built on a Mac" in out and "flutter build ipa" in out
 
@@ -109,7 +112,7 @@ def test_android_keystore_never_shows_secrets(tmp_path, monkeypatch):
     out = sess.registry.call("signing_create_android", {}).text
     assert "sha256=" in out and "Back up" in out
     listed = sess.registry.call("signing_list", {}).text
-    keys = json.loads((tmp_path / "home/signing/mobil/keys.json").read_text())
+    keys = json.loads((tmp_path / "home/signing/mobil/keys.json").read_text(encoding="utf-8"))
     from yworkspace.config import get_secret
     pw = get_secret(keys[0]["password_secret"])
     assert pw and pw not in out and pw not in listed

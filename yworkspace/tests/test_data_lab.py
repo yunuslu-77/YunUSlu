@@ -59,19 +59,19 @@ def test_python_chart_dashboard_notebook(tmp_path, monkeypatch):
     assert "5.6667" in py and (root / ".yw/data/run_001.py").exists()
     assert core.Ledger(root).entries()[-1]["values"] == [5.6667]
     ch = call("data_chart", {"path": "satis.csv", "x": "şube", "y_column": "adet", "title": "Adet"}).text
-    assert "reports/charts/adet.svg" in ch and (root / "reports/charts/adet.svg").read_text().count("<rect") == 4
+    assert "reports/charts/adet.svg" in ch and (root / "reports/charts/adet.svg").read_text(encoding="utf-8").count("<rect") == 4
     d = call("data_dashboard", {"path": "satis.csv", "title": "Panel", "kpis": [
         {"label": "Toplam adet", "column": "adet", "agg": "sum"},
         {"label": "Kahve satışı", "column": "adet", "agg": "sum",
          "filters": [{"column": "ürün", "cmp": "==", "value": "Kahve"}]}],
         "charts": [{"x": "ürün", "y": "adet", "title": "Ürünler"}]}).text
     assert "2 KPIs and 1 charts" in d
-    page = (root / "reports/dashboard.html").read_text()
+    page = (root / "reports/dashboard.html").read_text(encoding="utf-8")
     assert ">31<" in page and ">11<" in page
     nb = call("data_notebook", {"out": "analiz.ipynb", "cells": [
         {"type": "markdown", "source": "# Analiz"}, {"source": "x = 2 + 2"}, {"source": "print('sonuç', x * 10)"}]}).text
     assert "ran top to bottom" in nb and "sonuç 40" in nb
-    data = json.loads((root / "analiz.ipynb").read_text())
+    data = json.loads((root / "analiz.ipynb").read_text(encoding="utf-8"))
     assert data["nbformat"] == 4 and data["cells"][0]["cell_type"] == "markdown"
     broken = call("data_notebook", {"out": "bozuk.ipynb", "cells": [{"source": "1/0"}]}).text
     assert "FAILED" in broken

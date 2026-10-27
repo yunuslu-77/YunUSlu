@@ -40,7 +40,7 @@ def test_reboot_resume_and_skip(tmp_path, monkeypatch):
     w = wizard.Wizard(Config(), info("windows"))
     out = w.run_action(wizard.Action("x", ["wsl"], reboot_after=True), runner=lambda c: (0, "ok"))
     assert "REBOOT REQUIRED" in out
-    assert json.loads((tmp_path / "setup.json").read_text())["_resume_after_reboot"] is True
+    assert json.loads((tmp_path / "setup.json").read_text(encoding="utf-8"))["_resume_after_reboot"] is True
     w.mark("bridge", "skipped")
     assert next(s for s in wizard.Wizard(Config(), info()).status() if s["id"] == "bridge")["skipped"]
 
@@ -48,10 +48,10 @@ def test_reboot_resume_and_skip(tmp_path, monkeypatch):
 def test_claude_desktop_merge(tmp_path, monkeypatch):
     cfgfile = tmp_path / "claude" / "claude_desktop_config.json"
     cfgfile.parent.mkdir()
-    cfgfile.write_text(json.dumps({"mcpServers": {"other": {"command": "x"}}, "theme": "dark"}))
+    cfgfile.write_text(json.dumps({"mcpServers": {"other": {"command": "x"}}, "theme": "dark"}), encoding="utf-8")
     monkeypatch.setattr(wizard, "claude_desktop_config_path", lambda: cfgfile)
     wizard.add_mcp_to_claude_desktop(str(tmp_path / "proj"))
-    data = json.loads(cfgfile.read_text())
+    data = json.loads(cfgfile.read_text(encoding="utf-8"))
     assert set(data["mcpServers"]) == {"other", "yworkspace"} and data["theme"] == "dark"
     assert data["mcpServers"]["yworkspace"]["args"][-2:] == ["-p", str(tmp_path / "proj")]
     assert cfgfile.with_suffix(".json.yw-backup").exists()

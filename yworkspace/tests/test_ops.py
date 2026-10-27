@@ -53,10 +53,10 @@ def test_monitor_checks_and_incidents(tmp_path, monkeypatch):
     subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", str(key), "-out", str(cert),
                     "-days", "10", "-subj", "/CN=127.0.0.1"], capture_output=True, check=True)
     up, tls = serve(), serve(tls=(str(cert), str(key)))
-    (tmp_path / "app.log").write_text(LOG)
+    (tmp_path / "app.log").write_text(LOG, encoding="utf-8")
     backups = tmp_path / "backups"
     backups.mkdir()
-    (backups / "db-old.sql").write_text("x")
+    (backups / "db-old.sql").write_text("x", encoding="utf-8")
     old = time.time() - 50 * 3600
     os.utime(backups / "db-old.sql", (old, old))
     mon = Monitor(root)
@@ -94,13 +94,13 @@ def test_server_agent_runs_locally(tmp_path, monkeypatch):
     monkeypatch.setenv("NO_PROXY", "127.0.0.1,localhost")
     up = serve()
     (tmp_path / "b").mkdir()
-    (tmp_path / "b" / "x.sql").write_text("x")
+    (tmp_path / "b" / "x.sql").write_text("x", encoding="utf-8")
     cfg = {"urls": [f"http://127.0.0.1:{up.server_address[1]}/"], "backup_dir": str(tmp_path / "b"),
            "status_file": str(tmp_path / "status.json")}
-    (tmp_path / "agent.json").write_text(json.dumps(cfg))
+    (tmp_path / "agent.json").write_text(json.dumps(cfg), encoding="utf-8")
     agent = Path(__file__).resolve().parents[1] / "src/yworkspace/ops/agent/yw_agent.py"
     r = subprocess.run([sys.executable, str(agent), str(tmp_path / "agent.json")], capture_output=True, text=True)
-    status = json.loads((tmp_path / "status.json").read_text())
+    status = json.loads((tmp_path / "status.json").read_text(encoding="utf-8"))
     assert status["checks"]["backups"]["ok"] and status["checks"][f"url {cfg['urls'][0]}"]["ok"]
     assert r.returncode in (0, 1)
     up.shutdown()
@@ -128,4 +128,4 @@ def test_incident_fix_loop(tmp_path, monkeypatch):
     out = sess.registry.call("incident_fix", {"incident_id": inc.id, "deploy": False}).text
     assert "DONE" in out, out
     assert next(i for i in Monitor(root).incidents() if i.id == inc.id).status == "fixed"
-    assert "b == 0" in (root / "calc.py").read_text()
+    assert "b == 0" in (root / "calc.py").read_text(encoding="utf-8")

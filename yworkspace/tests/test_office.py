@@ -79,7 +79,7 @@ def test_powerpoint_render_and_convert(tmp_path, monkeypatch):
     assert not shot.is_error and len(shot.images) == 3, shot.text
     pdf = call("office_convert", {"path": "sunum.pptx", "to": "pdf"}).text
     assert "sunum.pdf" in pdf and (root / "sunum.pdf").stat().st_size > 1000
-    (root / "not.md").write_text("# Başlık\n\nMerhaba **dünya**\n")
+    (root / "not.md").write_text("# Başlık\n\nMerhaba **dünya**\n", encoding="utf-8")
     call("office_convert", {"path": "not.md", "to": "docx"})
     assert "(Title) Başlık" in call("office_read", {"path": "not.docx"}).text or \
         "Başlık" in call("office_read", {"path": "not.docx"}).text

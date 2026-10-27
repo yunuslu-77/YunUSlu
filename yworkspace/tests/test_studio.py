@@ -65,7 +65,7 @@ def test_app_icons_and_image_edit(tmp_path):
     assert "android/mipmap-mdpi/ic_launcher_foreground.png" in names
     assert "ios/AppIcon.appiconset/icon-1024@1x.png" in names and "ios/AppIcon.appiconset/icon-83.5@2x.png" in names
     assert "windows/yapp.ico" in names and "web/favicon.ico" in names
-    contents = json.loads((tmp_path / "icons/ios/AppIcon.appiconset/Contents.json").read_text())
+    contents = json.loads((tmp_path / "icons/ios/AppIcon.appiconset/Contents.json").read_text(encoding="utf-8"))
     for img in contents["images"]:
         assert (tmp_path / "icons/ios/AppIcon.appiconset" / img["filename"]).exists()
     with Image.open(tmp_path / "icons/ios/AppIcon.appiconset/icon-1024@1x.png") as big:

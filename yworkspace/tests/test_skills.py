@@ -8,7 +8,7 @@ def test_library_is_complete():
     skills = load_all()
     assert len(skills) >= 25
     for s in skills:
-        assert (s.path / "core.en.md").read_text().strip() and (s.path / "core.tr.md").read_text().strip(), s.name
+        assert (s.path / "core.en.md").read_text(encoding="utf-8").strip() and (s.path / "core.tr.md").read_text(encoding="utf-8").strip(), s.name
         assert s.triggers and s.description
 
 
@@ -31,9 +31,9 @@ def test_skills_for_language_and_model_notes():
 def test_export_all_formats(tmp_path):
     files = export(tmp_path, names=["payments"])
     assert len(files) == 10
-    skill_md = (tmp_path / "claude/tr/payments-tr/SKILL.md").read_text()
+    skill_md = (tmp_path / "claude/tr/payments-tr/SKILL.md").read_text(encoding="utf-8")
     front = yaml.safe_load(skill_md.split("---")[1])
     assert front["name"] == "payments-tr" and "Şu konularda kullan" in front["description"]
-    assert "Talimatlar" in (tmp_path / "chatgpt/tr/payments.md").read_text()
-    assert "Gem" in (tmp_path / "gemini/en/payments.md").read_text()
+    assert "Talimatlar" in (tmp_path / "chatgpt/tr/payments.md").read_text(encoding="utf-8")
+    assert "Gem" in (tmp_path / "gemini/en/payments.md").read_text(encoding="utf-8")
     assert (tmp_path / "deepseek/en/payments.md").exists()

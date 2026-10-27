@@ -69,7 +69,7 @@ def test_done_requires_evidence_and_lazy_code_is_caught(tmp_path):
     dev_seen = provs["developer"].seen
     assert any("no_evidence" in m.content for m in dev_seen[2] if m.role == "tool")
     assert report.finished, report.text()
-    assert "TODO" not in (eng.root / "slug.py").read_text()
+    assert "TODO" not in (eng.root / "slug.py").read_text(encoding="utf-8")
 
 
 def test_gates_fail_without_tests_and_turn_into_tasks(tmp_path):

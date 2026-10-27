@@ -10,6 +10,7 @@ Config: /etc/yw-agent.json  {"urls": [...], "backup_dir": "/backups", "backup_ma
 
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -54,18 +55,18 @@ def check_backups(folder, max_age_hours):
 
 
 def main(config_path=DEFAULT_CONFIG):
-    cfg = json.load(open(config_path)) if os.path.exists(config_path) else {}
+    cfg = json.load(open(config_path, encoding="utf-8")) if os.path.exists(config_path) else {}
     checks = {f"url {u}": check_url(u) for u in cfg.get("urls", [])}
     checks["containers"] = check_containers()
     checks["disk"] = check_disk(cfg.get("disk_warn_percent", 85))
     if cfg.get("backup_dir"):
         checks["backups"] = check_backups(cfg["backup_dir"], cfg.get("backup_max_age_hours", 26))
-    status = {"time": time.time(), "host": os.uname().nodename, "checks": checks,
+    status = {"time": time.time(), "host": platform.node(), "checks": checks,
               "ok": all(c["ok"] for c in checks.values())}
     path = cfg.get("status_file", "/var/lib/yw-agent/status.json")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(status, f, indent=2)
     os.replace(tmp, path)
     print(json.dumps(status))

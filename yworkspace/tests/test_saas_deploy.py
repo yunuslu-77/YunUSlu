@@ -18,8 +18,8 @@ def test_saas_template_into_project_and_its_tests_pass(tmp_path, monkeypatch):
     r = sess.registry.call("saas_new", {"template": "fastapi-saas", "project_name": "Kuaför Randevu"})
     assert not r.is_error, r.text
     root = sess.workspace.root
-    assert "Kuaför Randevu" in (root / "README.md").read_text()
-    assert "{{project_name}}" not in (root / "app/settings.py").read_text()
+    assert "Kuaför Randevu" in (root / "README.md").read_text(encoding="utf-8")
+    assert "{{project_name}}" not in (root / "app/settings.py").read_text(encoding="utf-8")
     res = subprocess.run([sys.executable, "-m", "pytest", "-q"], cwd=root, capture_output=True, text=True,
                          timeout=300)
     assert res.returncode == 0, res.stdout[-2000:]
@@ -34,12 +34,12 @@ def test_vps_deploy_prepare_and_run(tmp_path, monkeypatch):
     opts = {"host": "203.0.113.10", "domain": "app.example.com", "user": "deploy"}
     out = call("deploy_prepare", {"name": "vps", "options": opts}).text
     root = sess.workspace.root
-    assert "app.example.com" in (root / "deploy/Caddyfile").read_text()
-    assert "reverse_proxy app:8000" in (root / "deploy/Caddyfile").read_text()
-    assert "deploy@203.0.113.10" in (root / "deploy/deploy.sh").read_text()
+    assert "app.example.com" in (root / "deploy/Caddyfile").read_text(encoding="utf-8")
+    assert "reverse_proxy app:8000" in (root / "deploy/Caddyfile").read_text(encoding="utf-8")
+    assert "deploy@203.0.113.10" in (root / "deploy/deploy.sh").read_text(encoding="utf-8")
     assert ".env.production" in out and "MISSING" in out
     assert call("deploy_run", {"name": "vps", "options": opts}).is_error  # prerequisites missing
-    (root / ".env.production").write_text("SECRET_KEY=x\n")
+    (root / ".env.production").write_text("SECRET_KEY=x\n", encoding="utf-8")
     ran = []
     sess.deploy_runner["fn"] = lambda cmd, cwd: (ran.append(cmd), (0, "deployed"))[1]
     monkeypatch.setattr("shutil.which", lambda exe: "/usr/bin/" + exe)

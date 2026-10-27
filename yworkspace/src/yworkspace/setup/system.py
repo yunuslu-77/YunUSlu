@@ -51,7 +51,7 @@ def _run(cmd: list[str], timeout: int = 10) -> str:
 def _ram_gb() -> float:
     if sys.platform.startswith("linux"):
         try:
-            for line in open("/proc/meminfo"):
+            for line in open("/proc/meminfo", encoding="utf-8"):
                 if line.startswith("MemTotal"):
                     return int(line.split()[1]) / 1024**2
         except OSError:
@@ -99,7 +99,7 @@ def _gpus(os_name: str, arch: str) -> list[GPU]:
 
 def _distro() -> str:
     try:
-        text = open("/etc/os-release").read().lower()
+        text = open("/etc/os-release", encoding="utf-8").read().lower()
     except OSError:
         return "other"
     like = re.search(r"^id_like=(.*)$", text, re.M)

@@ -46,9 +46,9 @@ def test_extension_drives_chat(tmp_path):
     # Test copy of the extension that also matches the local fake chat page.
     ext = tmp_path / "ext"
     shutil.copytree(EXT, ext)
-    manifest = json.loads((ext / "manifest.json").read_text())
+    manifest = json.loads((ext / "manifest.json").read_text(encoding="utf-8"))
     manifest["content_scripts"][0]["matches"].append("http://127.0.0.1/*")
-    (ext / "manifest.json").write_text(json.dumps(manifest))
+    (ext / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 
     site = tmp_path / "site"
     site.mkdir()
