@@ -62,6 +62,13 @@ PRESETS: dict[str, ModelProfile] = {p.id: p for p in [
                  tier="small", local=True, price_in=0.0, price_out=0.0,
                  notes=["Small local model: keep instructions short, use examples, read files in small pages.",
                         "If native tool calls are unreliable, switch tool_calling to 'text'."]),
+    # Janas-LLM (github.com/prabanta-dev/janas): MoE models larger than RAM, experts streamed from an NVMe SSD.
+    # Start it with installer/windows/install-janas.ps1 or `janas-server <model.jns>` (OpenAI API on port 8080).
+    ModelProfile("janas-qwen3-coder-next", "openai", "qwen3-coder-next", "http://127.0.0.1:8080/v1", None, 16_384,
+                 tier="standard", local=True, price_in=0.0, price_out=0.0,
+                 notes=["Qwen3-Coder-Next (80B MoE, 3B active) running locally through Janas-LLM.",
+                        "The first reply of a session is slower while experts load from the SSD; keep going.",
+                        "Context is 16K tokens by default: read files in pages and keep notes in memory_note."]),
 ]}
 
 
