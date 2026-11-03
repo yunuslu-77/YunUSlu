@@ -15,7 +15,7 @@ from ..tools.registry import DESTRUCTIVE, EXEC, EXTERNAL, WRITE, Tool, ToolRegis
 from . import checks as checks_mod
 from . import laziness
 from .loop import AgentLoop, LoopEvent
-from .roles import ROLES, Role, system_prompt
+from .roles import ROLES, Role, focused_categories, system_prompt
 from .state import BLOCKED, DONE, TODO, ProjectState
 
 STEPS, MILESTONES, AUTO = "steps", "milestones", "auto"
@@ -324,6 +324,8 @@ class Engine:
         reg = self.registry if role.tools is None else self.registry.subset(names=role.tools + ["plan_show"])
         if role.tools is None:
             reg = self.registry.subset(names=[n for n in self.registry.names() if n != "review_verdict"])
+            if prof and (prof.local or prof.context_window <= 32_000):
+                reg = reg.subset(categories=focused_categories(role_name, f"{self.state.goal}\n{assignment}"))
         sys = system_prompt(role, self.lang, prof.notes if prof else None,
                             self.skills_for(role_name, assignment))
         msgs = [Message("system", sys), Message("user", self._brief(assignment))]

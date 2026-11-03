@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 COMMON = """You are part of yWorkspace, an environment that gives you real tools: files, an isolated Linux
@@ -81,6 +82,36 @@ through the screen tools only (screen_view, tap, type, scroll ...). Follow the u
 explore freely. Report every bug and usability problem with steps to reproduce using plan_update(note=...).""",
          None, 80),
 ]}
+
+
+# Roles that get every tool (developer, tester, ...) send ~140 tool descriptions, about 14,000 tokens. A local
+# model reads that at a few dozen tokens a second and has 16K of context, so it gets the core categories and
+# only the others its work mentions.
+CORE_CATEGORIES = ["file", "shell", "plan", "verify", "git"]
+ROLE_CATEGORIES = {"director": ["media"], "test_user": ["operator"]}
+CATEGORY_WORDS = {
+    "data": ["csv", "excel", "xlsx", "veri", "data", "tablo", "table", "grafik", "chart", "dashboard", "pandas"],
+    "office": ["docx", "word", "pptx", "powerpoint", "sunum", "presentation", "xlsx", "excel", "belge", "document"],
+    "media": ["video", "ses", "audio", "müzik", "music", "görsel", "image", "resim", "ikon", "icon", "animasyon",
+              "animation", "logo", "3d"],
+    "operator": ["arayüz", "ekranı dene", "tıkla", "screen", "click", "browser", "tarayıcı", "web sitesi", "website",
+                 "sayfa", "page", "journey", "yolculuk", "android", "ios"],
+    "deploy": ["deploy", "yayın", "yayına", "publish", "sunucuya", "hosting"],
+    "launch": ["landing", "seo", "pazarlama", "marketing", "launch", "fiyatlandırma", "pricing"],
+    "factory": ["apk", "exe", "installer", "kurulum dosyası", "paketle", "package", "store", "mağaza", "imzala", "sign"],
+    "security": ["güvenlik", "security", "secret", "zafiyet", "vulnerab"],
+    "saas": ["saas", "abonelik", "subscription"],
+    "automation": ["otomasyon", "automation", "zamanla", "schedule", "cron", "her gün", "every day"],
+}
+
+
+def focused_categories(role_name: str, text: str) -> list[str]:
+    """Tool categories for a role played by a small-context model: the core ones and those `text` mentions.
+    Words match at the start of a word, so Turkish endings still match ("videoyu") but "sign" is not in "design"."""
+    low = text.lower()
+    cats = CORE_CATEGORIES + ROLE_CATEGORIES.get(role_name, [])
+    cats += [c for c, words in CATEGORY_WORDS.items() if any(re.search(r"(?<!\w)" + re.escape(w), low) for w in words)]
+    return list(dict.fromkeys(cats))
 
 
 def system_prompt(role: Role, lang: str = "tr", model_notes: list[str] | None = None, skills: str = "") -> str:

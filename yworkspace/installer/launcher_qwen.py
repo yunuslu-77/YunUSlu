@@ -17,12 +17,13 @@ from yworkspace.cli import main
 from yworkspace.config import Config, home
 from yworkspace.models.profiles import PRESETS
 
-DEFAULT = "janas-qwen3-coder-30b"
+DEFAULT = "janas-qwen3-coder-next"
 JANAS_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "yWorkspace" / "janas"
-# preset -> (model file in JANAS_DIR/models, server options)
+# preset -> (model file in JANAS_DIR/models, server options), the preferred one first. Coder-Next finishes
+# yWorkspace's multi-step work; 30B writes twice as fast but looped on the same planning step in a real run.
 MODELS = {
-    "janas-qwen3-coder-30b": ("qwen3-coder-30b-a3b-instruct-q4_k_m.jns", ["--cache", "18"]),  # every expert in memory
     "janas-qwen3-coder-next": ("qwen3-coder-next-q4km.jns", ["--reserve", "8"]),  # experts streamed from the SSD
+    "janas-qwen3-coder-30b": ("qwen3-coder-30b-a3b-instruct-q4_k_m.jns", ["--cache", "18"]),  # every expert in memory
 }
 
 
