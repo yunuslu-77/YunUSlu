@@ -69,6 +69,12 @@ PRESETS: dict[str, ModelProfile] = {p.id: p for p in [
                  notes=["Qwen3-Coder-Next (80B MoE, 3B active) running locally through Janas-LLM.",
                         "The first reply of a session is slower while experts load from the SSD; keep going.",
                         "Context is 16K tokens by default: read files in pages and keep notes in memory_note."]),
+    # Qwen3-Coder-30B-A3B (18.6 GB) fits whole in 32 GB of memory, so it answers several times faster than Next.
+    ModelProfile("janas-qwen3-coder-30b", "openai", "qwen3-coder-30b-a3b", "http://127.0.0.1:8080/v1", None, 16_384,
+                 tier="standard", local=True, price_in=0.0, price_out=0.0,
+                 notes=["Qwen3-Coder-30B-A3B (30B MoE, 3B active) running locally through Janas-LLM, held in memory.",
+                        "Smaller than Qwen3-Coder-Next: plan in small steps and check each one with a command.",
+                        "Context is 16K tokens by default: read files in pages and keep notes in memory_note."]),
 ]}
 
 
