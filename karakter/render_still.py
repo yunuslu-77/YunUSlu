@@ -16,17 +16,17 @@ def setup_studio(sc):
     bg = w.node_tree.nodes["Background"]
     bg.inputs["Color"].default_value = (0.045, 0.05, 0.06, 1); bg.inputs["Strength"].default_value = 1.0
     lights = [  # (isim, konum, güç W, boyut, renk)
-        ("Ana", (1.6, -2.2, 2.4), 450, 1.2, (1.0, 0.93, 0.85)),
-        ("Dolgu", (-2.2, -1.6, 1.6), 120, 2.0, (0.8, 0.88, 1.0)),
-        ("Kontur", (-0.8, 2.4, 2.6), 500, 0.8, (0.85, 0.92, 1.0)),
-        ("Kontur2", (1.4, 2.0, 1.9), 300, 0.6, (1.0, 0.85, 0.7)),
+        ("Ana", (1.6, -2.2, 2.4), 260, 1.4, (1.0, 0.93, 0.85)),
+        ("Dolgu", (-2.2, -1.6, 1.6), 60, 2.5, (0.8, 0.88, 1.0)),
+        ("Kontur", (-0.8, 2.4, 2.6), 220, 1.2, (0.85, 0.92, 1.0)),
+        ("Kontur2", (1.4, 2.0, 1.9), 120, 1.0, (1.0, 0.85, 0.7)),
     ]
     for n, loc, p, size, col in lights:
         ld = bpy.data.lights.new(n, "AREA"); ld.energy = p; ld.size = size; ld.color = col
         lo = bpy.data.objects.new(n, ld); sc.collection.objects.link(lo); lo.location = loc
         look_at(lo, (0, 0, 1.3))
     # zemin
-    bpy.ops.mesh.primitive_plane_add(size=30)
+    bpy.ops.mesh.primitive_plane_add(size=400)
     fl = bpy.context.object; fl.name = "Zemin"
     m = bpy.data.materials.new("Zemin"); m.use_nodes = True
     b = m.node_tree.nodes["Principled BSDF"]
@@ -39,7 +39,7 @@ def render_settings(sc, res=(1080, 1350), samples=64):
     sc.cycles.samples = samples; sc.cycles.use_denoising = True
     sc.render.resolution_x, sc.render.resolution_y = res
     sc.render.film_transparent = False
-    sc.view_settings.view_transform = "AgX"; sc.view_settings.look = "AgX - Punchy"
+    sc.view_settings.view_transform = "AgX"; sc.view_settings.look = "AgX - Medium High Contrast"
 
 
 def cam(sc, name, loc, target, lens):

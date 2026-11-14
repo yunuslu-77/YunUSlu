@@ -10,6 +10,7 @@ import bpy
 from mathutils import Matrix, Quaternion, Vector
 
 LAST_ROOT_PATH = []
+LAST_FACING = []
 NAME_MAP = {"LeftHandIndex1": "LeftHandFinger1", "RightHandIndex1": "RightHandFinger1"}
 CONV = Matrix(((1, 0, 0), (0, 0, -1), (0, 1, 0)))  # BVH (Y-yukarı) -> Blender (Z-yukarı)
 
@@ -91,9 +92,11 @@ def retarget(arm, path, action_name, fps=30, ground_fix=True, max_seconds=None, 
     bones = arm.data.bones
     rest_w = {b.name: b.matrix_local.copy() for b in bones}  # armature uzayı
     src_of = {}
+    # ayak parmağı verisi CMU'da gürültülü: parmaklar ayağa sabit kalsın
+    SKIP = {"LeftToeBase", "RightToeBase"}
     for j in order:
         t = NAME_MAP.get(j, j)
-        if t in bones:
+        if t in bones and t not in SKIP:
             src_of[t] = j
 
     # kaynak dinlenme yönleri (Blender ekseninde)
@@ -205,6 +208,11 @@ def retarget(arm, path, action_name, fps=30, ground_fix=True, max_seconds=None, 
                 pb.location = basis.to_translation()
                 pb.keyframe_insert("location", frame=fi + 1, group=name)
     act.frame_range = (1, len(frames))
-    global LAST_ROOT_PATH  # kalça yolu (armatür uzayı) — kamera takibi için
+    global LAST_ROOT_PATH, LAST_FACING  # kalça yolu ve bakış yönü — kamera takibi için
     LAST_ROOT_PATH = [r + Vector((0, 0, dz)) for r in roots]
+    LAST_FACING = []
+    for pw in poses:
+        fwd = pw["Hips"] @ rest_w["Hips"].to_3x3().inverted() @ Vector((0, -1, 0))
+        fwd.z = 0
+        LAST_FACING.append(fwd.normalized() if fwd.length > 1e-6 else Vector((0, -1, 0)))
     return act, len(frames)

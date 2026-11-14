@@ -42,6 +42,11 @@ RIG = "cmu_mb"
 
 
 # ------------------------------------------------------------ yardımcılar
+def SK(sockets, identifier):
+    """Mix düğümünde aynı isimli birden çok soket var: benzersiz kimlikle seç."""
+    return next(x for x in sockets if x.identifier == identifier)
+
+
 def img(path, noncolor=False):
     im = bpy.data.images.load(path, check_existing=True)
     if noncolor:
@@ -225,13 +230,13 @@ light = tex_node(nt, img(os.path.join(A, "skins/textures/young_lightskinned_male
 dark = tex_node(nt, img(os.path.join(A, "skins/textures/young_darkskinned_male_diffuse.png")), -1100, -100)
 mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"; mix.location = (-750, 100)
 mix.inputs["Factor"].default_value = 0.55
-nt.links.new(light.outputs["Color"], mix.inputs["A"]); nt.links.new(dark.outputs["Color"], mix.inputs["B"])
+nt.links.new(light.outputs["Color"], SK(mix.inputs, "A_Color")); nt.links.new(dark.outputs["Color"], SK(mix.inputs, "B_Color"))
 hs = nt.nodes.new("ShaderNodeHueSaturation"); hs.location = (-500, 100)
 hs.inputs["Hue"].default_value = 0.495; hs.inputs["Saturation"].default_value = 0.92; hs.inputs["Value"].default_value = 0.9
-nt.links.new(mix.outputs["Result"], hs.inputs["Color"])
+nt.links.new(SK(mix.outputs, "Result_Color"), hs.inputs["Color"])
 tan = nt.nodes.new("ShaderNodeMix"); tan.data_type = "RGBA"; tan.blend_type = "MULTIPLY"; tan.location = (-300, 100)
-tan.inputs["Factor"].default_value = 1.0; tan.inputs["B"].default_value = (0.86, 0.68, 0.52, 1.0)  # Akdeniz bronz tonu
-nt.links.new(hs.outputs["Color"], tan.inputs["A"])
+tan.inputs["Factor"].default_value = 1.0; SK(tan.inputs, "B_Color").default_value = (0.8, 0.6, 0.45, 1.0)  # Akdeniz bronz tonu
+nt.links.new(hs.outputs["Color"], SK(tan.inputs, "A_Color"))
 # hafif renk dalgalanması (kızarıklık/ton farkları)
 mott = nt.nodes.new("ShaderNodeTexNoise"); mott.location = (-700, 500); mott.inputs["Scale"].default_value = 45.0
 mott.inputs["Detail"].default_value = 4.0
@@ -239,32 +244,38 @@ tcm = nt.nodes.new("ShaderNodeTexCoord"); tcm.location = (-950, 500)
 nt.links.new(tcm.outputs["Object"], mott.inputs["Vector"])
 red = nt.nodes.new("ShaderNodeMix"); red.data_type = "RGBA"; red.blend_type = "OVERLAY"; red.location = (-100, 300)
 red.inputs["Factor"].default_value = 0.12
-nt.links.new(tan.outputs["Result"], red.inputs["A"]); nt.links.new(mott.outputs["Color"], red.inputs["B"])
+nt.links.new(SK(tan.outputs, "Result_Color"), SK(red.inputs, "A_Color")); nt.links.new(mott.outputs["Color"], SK(red.inputs, "B_Color"))
 # saç ve sakal altı koyulaşma
 amask = nt.nodes.new("ShaderNodeAttribute"); amask.attribute_name = "sac_maske"; amask.location = (-100, 600)
 bmask = nt.nodes.new("ShaderNodeAttribute"); bmask.attribute_name = "sakal_maske"; bmask.location = (-100, 750)
 sm = nt.nodes.new("ShaderNodeMath"); sm.operation = "MULTIPLY"; sm.inputs[1].default_value = 0.85; sm.location = (80, 600)
 nt.links.new(amask.outputs["Fac"], sm.inputs[0])
 scalp_mix = nt.nodes.new("ShaderNodeMix"); scalp_mix.data_type = "RGBA"; scalp_mix.location = (250, 400)
-scalp_mix.inputs["B"].default_value = (0.03, 0.022, 0.018, 1)
-nt.links.new(sm.outputs["Value"], scalp_mix.inputs["Factor"]); nt.links.new(red.outputs["Result"], scalp_mix.inputs["A"])
+SK(scalp_mix.inputs, "B_Color").default_value = (0.03, 0.022, 0.018, 1)
+nt.links.new(sm.outputs["Value"], scalp_mix.inputs["Factor"]); nt.links.new(SK(red.outputs, "Result_Color"), SK(scalp_mix.inputs, "A_Color"))
 bm_ = nt.nodes.new("ShaderNodeMath"); bm_.operation = "MULTIPLY"; bm_.inputs[1].default_value = 0.55; bm_.location = (80, 750)
 nt.links.new(bmask.outputs["Fac"], bm_.inputs[0])
 beard_mix = nt.nodes.new("ShaderNodeMix"); beard_mix.data_type = "RGBA"; beard_mix.location = (420, 400)
-beard_mix.inputs["B"].default_value = (0.11, 0.095, 0.095, 1)  # tıraş gölgesi: gri-mavimsi
-nt.links.new(bm_.outputs["Value"], beard_mix.inputs["Factor"]); nt.links.new(scalp_mix.outputs["Result"], beard_mix.inputs["A"])
-nt.links.new(beard_mix.outputs["Result"], b.inputs["Base Color"])
+SK(beard_mix.inputs, "B_Color").default_value = (0.11, 0.095, 0.095, 1)  # tıraş gölgesi: gri-mavimsi
+nt.links.new(bm_.outputs["Value"], beard_mix.inputs["Factor"]); nt.links.new(SK(scalp_mix.outputs, "Result_Color"), SK(beard_mix.inputs, "A_Color"))
+nt.links.new(SK(beard_mix.outputs, "Result_Color"), b.inputs["Base Color"])
 # pürüzlülük farkı (alın/burun daha yağlı)
 rn = nt.nodes.new("ShaderNodeTexNoise"); rn.location = (-700, -250); rn.inputs["Scale"].default_value = 30.0
 nt.links.new(tcm.outputs["Object"], rn.inputs["Vector"])
 rmr = nt.nodes.new("ShaderNodeMapRange"); rmr.location = (-450, -250)
-rmr.inputs["To Min"].default_value = 0.4; rmr.inputs["To Max"].default_value = 0.58
-nt.links.new(rn.outputs["Fac"], rmr.inputs["Value"]); nt.links.new(rmr.outputs["Result"], b.inputs["Roughness"])
+rmr.inputs["To Min"].default_value = 0.55; rmr.inputs["To Max"].default_value = 0.7
+nt.links.new(rn.outputs["Fac"], rmr.inputs["Value"])
+# saç/sakal altındaki deri mat (kıllar yansımayı kırar)
+rmax = nt.nodes.new("ShaderNodeMath"); rmax.operation = "MAXIMUM"; rmax.location = (-200, -250)
+nt.links.new(rmr.outputs["Result"], rmax.inputs[0]); nt.links.new(amask.outputs["Fac"], rmax.inputs[1])
+rmax2 = nt.nodes.new("ShaderNodeMath"); rmax2.operation = "MAXIMUM"; rmax2.location = (-50, -250)
+nt.links.new(rmax.outputs["Value"], rmax2.inputs[0]); nt.links.new(bmask.outputs["Fac"], rmax2.inputs[1])
+nt.links.new(rmax2.outputs["Value"], b.inputs["Roughness"])
 b.inputs["Subsurface Weight"].default_value = 0.3
 b.inputs["Subsurface Radius"].default_value = (1.0, 0.35, 0.2)
 b.inputs["Subsurface Scale"].default_value = 0.006
 b.inputs["Roughness"].default_value = 0.48
-b.inputs["Specular IOR Level"].default_value = 0.45
+b.inputs["Specular IOR Level"].default_value = 0.32
 # gözenek / mikro detay
 tc = nt.nodes.new("ShaderNodeTexCoord"); tc.location = (-1300, -500)
 nz = nt.nodes.new("ShaderNodeTexNoise"); nz.location = (-1000, -500)

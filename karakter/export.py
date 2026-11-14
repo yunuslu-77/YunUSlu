@@ -18,12 +18,13 @@ arm = bpy.data.objects["Iskelet"]
 for name, clip, st, du, cat in CLIPS:
     act, n = anim.retarget(arm, os.path.join(bdir, clip + ".bvh"), name, start_seconds=st, max_seconds=du)
     print("ANIM", name, n)
-arm.animation_data.action = bpy.data.actions["bekleme"]
-sc.frame_start, sc.frame_end = 1, int(bpy.data.actions["bekleme"].frame_range[1])
+arm.animation_data.action = bpy.data.actions["bekleme_2"]
+sc.frame_start, sc.frame_end = 1, int(bpy.data.actions["bekleme_2"].frame_range[1])
 # her aksiyonu NLA izine koy (Blender içinde kolay seçim)
 for act in [a for a in bpy.data.actions if a.name in {c[0] for c in CLIPS}]:
     tr = arm.animation_data.nla_tracks.new(); tr.name = act.name; tr.mute = True
     tr.strips.new(act.name, 1, act)
+bpy.ops.file.pack_all()  # dokuları .blend içine göm (başka bilgisayarda da açılsın)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, "karakter.blend"))
 print("BLEND_KAYDEDILDI")
 

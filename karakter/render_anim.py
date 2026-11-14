@@ -20,7 +20,9 @@ sc = bpy.context.scene
 arm = bpy.data.objects["Iskelet"]
 setup_studio(sc)
 render_settings(sc, res=(width, width * 9 // 16), samples=samples)
-sc.render.fps = 30
+FPS = int(os.environ.get("FPS", "24"))
+CAP = float(os.environ.get("CAP", "0")) or None  # klip başına en fazla saniye
+sc.render.fps = FPS
 sc.render.use_persistent_data = True
 sc.render.use_simplify = True
 sc.render.simplify_child_particles_render = float(os.environ.get("CHILD", "0.5"))
@@ -41,7 +43,9 @@ cam = bpy.data.objects.new("Kamera", cd); sc.collection.objects.link(cam); sc.ca
 lookup = {c[0]: c for c in CLIPS}
 for name in names:
     _, clip, st, du, cat = lookup[name]
-    act, n = anim.retarget(arm, os.path.join(bdir, clip + ".bvh"), name, start_seconds=st, max_seconds=du)
+    dur = min(x for x in (du, CAP, 1e9) if x)
+    act, n = anim.retarget(arm, os.path.join(bdir, clip + ".bvh"), name, fps=FPS,
+                           start_seconds=st, max_seconds=None if dur >= 1e9 else dur)
     sc.frame_start, sc.frame_end = 1, n
     # kalça yolunu yumuşat (kamera titremesin)
     H = np.array([[v.x, v.y, v.z] for v in anim.LAST_ROOT_PATH])
@@ -51,8 +55,11 @@ for name in names:
     Hs = np.stack([np.convolve(pad[:, i], ker, mode="valid") for i in range(3)], 1)
     span = np.ptp(H[:, :2], axis=0).max()
     dist = 5.2 + min(span, 6.0) * 0.25
-    ang = math.radians(-35)
-    off = Vector((math.sin(ang) * dist, -math.cos(ang) * dist, 0))
+    # kamera: klip boyunca ortalama bakış yönünün 30° yanından, karakterin önünden
+    F = np.array([[v.x, v.y] for v in anim.LAST_FACING]).mean(0)
+    base = math.atan2(F[1], F[0]) if np.linalg.norm(F) > 0.2 else -math.pi / 2
+    ang = base + math.radians(float(os.environ.get("CAM_ANG", "30")))
+    off = Vector((math.cos(ang) * dist, math.sin(ang) * dist, 0))
     for f in range(1, n + 1):
         c = Vector(Hs[f - 1])
         cam.location = Vector((c.x, c.y, 1.25)) + off
