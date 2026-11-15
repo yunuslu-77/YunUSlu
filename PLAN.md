@@ -1,4 +1,7 @@
-# YunUSlu: 7/24 Kişisel Yapay Zekâ Ajanı — Proje Planı
+# YunUSlu: 7/24 Kişisel Yapay Zekâ Ajanı (YAi) — Proje Planı
+
+> ✅ Durum: Aşama 1–8 kodlandı ve test edildi (54 test). Kurulum için README.md'ye bak.
+> Aşama 0 senin yapacağın hazırlık adımları.
 
 > Hedef: OpenDots, Claude Duet ve Gemini Spark'ın özelliklerini birleştiren,
 > **telefonu da kontrol edebilen**, 7/24 bulutta çalışan kişisel asistan.
@@ -136,46 +139,46 @@ köprü komutu telefonda çalıştırıp sonucu geri döndürür.
 - [ ] (Telefon için) Android'e F-Droid'den **Termux** ve **Termux:API** kur
 
 ### Aşama 1: Temel Bot
-- [ ] Telegram ↔ Gemini sohbet (Türkçe)
-- [ ] Sadece senin kullanıcı ID'ne cevap verme (güvenlik)
-- [ ] Sesli mesajı anlama, fotoğraf anlama
-- [ ] Maliyet sayacı + günlük limit
+- [x] Telegram ↔ Gemini sohbet (Türkçe)
+- [x] Sadece senin kullanıcı ID'ne cevap verme (güvenlik)
+- [x] Sesli mesajı anlama, fotoğraf anlama
+- [x] Maliyet sayacı + günlük limit
 
 ### Aşama 2: Hafıza + Ajanlar
-- [ ] Konuşma geçmişi, "bunu hatırla" komutu, kişisel profil
-- [ ] Çoklu ajan yapısı: Asistan (ana), Araştırmacı, Telefon, Finans…
-- [ ] Onay sistemi (Telegram butonları: ✅ Onayla / ❌ İptal)
+- [x] Konuşma geçmişi, "bunu hatırla" komutu, kişisel profil
+- [x] Çoklu ajan yapısı: Asistan (ana), Araştırmacı, Telefon, Finans…
+- [x] Onay sistemi (Telegram butonları: ✅ Onayla / ❌ İptal)
 
 ### Aşama 3: Google Workspace
-- [ ] Gmail: okuma, özetleme, taslak yazma, gönderme (onaylı)
-- [ ] Takvim: etkinlikleri görme, ekleme, hatırlatma
-- [ ] Drive / Docs / Sheets: dosya bulma, rapor yazma
+- [x] Gmail: okuma, özetleme, taslak yazma, gönderme (onaylı)
+- [x] Takvim: etkinlikleri görme, ekleme, hatırlatma
+- [x] Drive / Docs / Sheets: dosya bulma, rapor yazma
 
 ### Aşama 4: Proaktiflik + Zamanlayıcı
-- [ ] **Sabah brifingi** (ör. 08:00)
-- [ ] Önemli e-posta / toplantı uyarısı
-- [ ] "Her X'te şunu yap" türü özel görevler
-- [ ] Haftalık özet
+- [x] **Sabah brifingi** (ör. 08:00)
+- [x] Önemli e-posta / toplantı uyarısı
+- [x] "Her X'te şunu yap" türü özel görevler
+- [x] Haftalık özet
 
 ### Aşama 5: 📱 Telefon Köprüsü
-- [ ] Termux köprü programı + WebSocket sunucusu
-- [ ] Seviye 1 komutlar (SMS, bildirim, konum, pil, kamera…)
-- [ ] Proaktif telefon uyarıları (düşük pil, önemli bildirim)
-- [ ] (İsteğe bağlı) Seviye 2: Tasker tetikleyicileri
+- [x] Termux köprü programı + WebSocket sunucusu
+- [x] Seviye 1 komutlar (SMS, bildirim, konum, pil, kamera…)
+- [x] Proaktif telefon uyarıları (düşük pil, önemli bildirim)
+- [x] (İsteğe bağlı) Seviye 2: Tasker tetikleyicileri
 
 ### Aşama 6: Bilgisayar + Tarayıcı
-- [ ] Web arama ve sayfa okuma
-- [ ] Playwright ile tarayıcı kullanma (form doldurma, onaylı)
-- [ ] Sanal dosya alanı (notlar, raporlar = "Pages")
+- [x] Web arama ve sayfa okuma
+- [x] Playwright ile tarayıcı kullanma (form doldurma, onaylı)
+- [x] Sanal dosya alanı (notlar, raporlar = "Pages")
 
 ### Aşama 7: Otomatik Öğrenme
-- [ ] Tekrarlanan istekleri tespit edip "beceri" önermek
-- [ ] Onaylanan becerileri kaydedip tekrar kullanmak
+- [x] Tekrarlanan istekleri tespit edip "beceri" önermek
+- [x] Onaylanan becerileri kaydedip tekrar kullanmak
 
 ### Aşama 8: Panel + Yayına Alma
-- [ ] Web panel: görevler, onay geçmişi, maliyet grafiği, loglar
-- [ ] GCP e2-micro'ya kurulum, `systemd`, otomatik yedekleme
-- [ ] (İsteğe bağlı) Seviye 3 ekran kontrolü (ADB + görme)
+- [x] Web panel: görevler, onay geçmişi, maliyet grafiği, loglar
+- [x] GCP e2-micro'ya kurulum, `systemd`, otomatik yedekleme
+- [x] (İsteğe bağlı) Seviye 3 ekran kontrolü (ADB + görme)
 
 ---
 
@@ -201,8 +204,8 @@ YunUSlu/
 
 ---
 
-## 7. Netleşmesi Gerekenler
-1. Telefonun **Android** mi? (Plan buna göre yazıldı)
-2. Sabah brifingi saat kaçta gelsin?
-3. Bot hangi isimle konuşsun?
-4. İlk etapta en çok hangi özelliği kullanmak istiyorsun? (Önceliklendirme için)
+## 7. Kararlar
+1. Telefon: **Android** (Termux köprüsü)
+2. Zamanlayıcılar: kullanıcı sesle/yazıyla ("her sabah 8'de...") veya `/zamanla` komutuyla kendisi kurar
+3. Botun adı: **YAi**
+4. Tüm özellikler tek seferde, sırayla yapıldı

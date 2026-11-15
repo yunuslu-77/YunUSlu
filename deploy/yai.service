@@ -1,0 +1,17 @@
+[Unit]
+Description=YAi kişisel yapay zeka ajanı
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=__DIR__/.venv/bin/python -m bot.main
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+MemoryMax=900M
+
+[Install]
+WantedBy=multi-user.target
