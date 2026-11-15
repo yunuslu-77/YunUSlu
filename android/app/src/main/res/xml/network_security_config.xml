@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sunucuya Tailscale üzerinden bağlanılır; Tailscale trafiği zaten uçtan uca şifreler (WireGuard). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

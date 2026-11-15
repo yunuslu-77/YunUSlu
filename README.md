@@ -29,13 +29,36 @@ Google Gemini ile çalışan ve bulutta 7/24 açık duran kişisel asistan. Ayl�
 | 💸 Bütçe koruması (günlük/aylık limit, uyarılar) | `/maliyet` |
 | 📱 **Telefon kontrolü** | Aşağıda |
 
+### 📲 YAi Android uygulaması
+
+<p align="center">
+  <img src="docs/screens/02_home.png" width="190"> <img src="docs/screens/03_chat.png" width="190">
+  <img src="docs/screens/05_learn.png" width="190"> <img src="docs/screens/02_home_dark.png" width="190">
+</p>
+
+Her şeyi telefondan yönetebilmen için yazılmış yerli Android uygulaması (Kotlin + Jetpack Compose, Material 3):
+
+| Sekme | İçerik |
+|---|---|
+| 🏠 Ana Sayfa | Durum (sunucu, telefon, Google), harcama göstergesi, hızlı işlemler, **onay bekleyen işler** |
+| 💬 Sohbet | Yazarak veya 🎤 **konuşarak** YAi ile sohbet. İstersen cevapları sesli okur |
+| 📅 Görevler | Zamanlayıcıları ve hatırlatıcıları görme, ekleme, silme |
+| 🎓 Öğren | **Öğrenme modu**: YAi'nin hangi uygulamaları öğreneceğini seçme |
+| 🧠 Beyin | Hafıza, ajanlar, beceriler, sayfalar |
+| ⚙️ Ayarlar | Kurulum kodu, telefon köprüsü, izinler, YAi davranışları |
+
+Uygulama aynı zamanda **telefon köprüsüdür**, Termux'a gerek kalmaz. Ekran kontrolü ADB yerine Android'in
+erişilebilirlik hizmetiyle yapılır, kablosuz hata ayıklama gerekmez. Telefon yeniden başlayınca kendisi bağlanır.
+
 ### 📱 Telefon kontrolü (Android)
 
 - **Seviye 1:** SMS okuma ve gönderme, arama, arama geçmişi, rehber, bildirimleri okuma, konum, fotoğraf, pano,
   fener, ses seviyesi, sesli okuma, titreşim, "telefonumu bul", link veya uygulama açma, **alarm ve sayaç kurma**.
 - **Seviye 2:** Tasker görevleri (Wi-Fi/Bluetooth açıp kapama, rahatsız etmeyin modu, kendi otomasyonların).
-- **Seviye 3:** **Ekranı görerek kullanma**. Bot ekran görüntüsüne bakar, dokunur, kaydırır ve yazar (ADB ile).
+- **Seviye 3:** **Ekranı görerek kullanma**. Bot ekrandaki yazıları okur (ucuz) veya ekran görüntüsüne bakar,
+  sonra dokunur, kaydırır ve yazar. YAi uygulamasıyla erişilebilirlik hizmeti üzerinden, Termux'la ADB üzerinden çalışır.
   Her oturum için önce senden onay ister.
+- **🎓 Öğrenme modu:** Seçtiğin uygulamaların ekranlarını ve gezinme yollarını öğrenir, sonra o uygulamalarda iş yapar.
 - **Olaylar:** Pil azalınca uyarı verir. Yeni SMS ve seçtiğin uygulamaların (WhatsApp, Gmail...) bildirimleri Telegram'a gelir.
 
 ---
@@ -109,7 +132,38 @@ sudo systemctl start yai
 4. Telegram'da `/google` yaz → bağlantıyı aç → izin ver → açılmayan `localhost` sayfasının **adresini kopyalayıp**
    bota gönder. ✅
 
-### Adım 5 — Telefonu bağla (Android)
+### Adım 5 — Telefonu bağla: 📲 YAi uygulaması (önerilen)
+
+1. Telefona **Tailscale** uygulamasını kur ve sunucuyla aynı hesapla giriş yap.
+2. Sunucuda `.env` dosyasına `PUBLIC_URL=http://<tailscale-ip>:8080` satırını ekle, ardından `sudo systemctl restart yai` çalıştır.
+3. **YAi.apk** dosyasını telefona indirip kur ("bilinmeyen kaynaklara izin ver" diye sorarsa izin ver).
+   APK'yı GitHub → *Actions* → son derleme → *YAi-apk* bölümünden de indirebilirsin.
+4. Telegram'da botuna `/uygulama` yaz. Gelen **kurulum kodunu** kopyala, uygulamayı açıp yapıştır ve **Başla**'ya dokun.
+5. Uygulamada **Ayarlar → İzinler** bölümündeki her satıra **Aç** de:
+   - Telefon izinleri (SMS, arama, rehber, konum, kamera, mikrofon)
+   - **Kısıtlı ayarlara izin ver** (Android 13 ve üstü): *Uygulama bilgisi → ⋮ → Kısıtlı ayarlara izin ver*.
+     Telefona dosyadan kurulan uygulamalarda Android bu adımı ister.
+   - **Ekran kontrolü ve öğrenme** (Erişilebilirlik → YAi ekran kontrolü)
+   - **Bildirim erişimi**, **diğer uygulamaların üzerinde gösterme**, **pil kısıtlamasını kaldırma**
+6. Ana sayfada "Telefon: Bağlı" yazısını görmelisin. ✅
+
+#### 🎓 Öğrenme modu
+Uygulamada **Öğren** sekmesine gir, YAi'nin öğrenmesini istediğin uygulamaları aç (WhatsApp, YouTube, Spotify...)
+ve o uygulamaları her zamanki gibi kullan. YAi şunları öğrenir:
+- ekranların adını ve her ekrandaki buton/sekme etiketlerini,
+- hangi butona basınca hangi ekrana gidildiğini.
+
+Sonra "WhatsApp'ta Ali'ye 'geliyorum' yaz" dediğinde bu rehbere bakarak adım adım ilerler.
+Ekranı kontrol etmeden önce **her seferinde onay ister**.
+
+🔒 **Gizlilik ve güvenlik:**
+- Mesaj içerikleri, liste satırları (sohbetler, kişiler), yazdığın metinler ve şifre alanları **kaydedilmez**.
+- Öğrenilen veriler sadece telefonunda saklanır.
+- Banka, ödeme, kripto, şifre yöneticisi, 2FA ve e-Devlet uygulamaları **her zaman engellidir**: YAi bu
+  uygulamalarda öğrenme yapmaz, ekranlarını okumaz, onları açmaz.
+- İstediğin uygulamanın öğrendiklerini tek dokunuşla silebilirsin.
+
+#### Alternatif: Termux köprüsü (uygulama kurmak istemezsen)
 
 1. **Tailscale** uygulamasını Play Store'dan kur, sunucuyla aynı hesapla giriş yap.
 2. **F-Droid**'den (<https://f-droid.org>) şunları kur: **Termux**, **Termux:API**, **Termux:Boot**.
@@ -128,12 +182,12 @@ sudo systemctl start yai
    - Termux, Termux:API ve Termux:Boot'u **pil optimizasyonundan çıkar** (Xiaomi/Samsung'da "otomatik başlatma" iznini de aç).
 5. Başlat: `~/yai/start.sh` → Telegram'da `/telefon` yaz, "Bağlı" görmelisin. Telefon yeniden açılınca köprü kendi kendine başlar.
 
-#### Seviye 2 — Tasker (isteğe bağlı)
+##### Seviye 2 — Tasker (isteğe bağlı)
 Tasker'da: *Profil → Olay → Sistem → Intent Received* → Action: `yai.TASKER`
 → Görev: *Perform Task* → Name: `%task`, Parameter 1: `%par`.
 Sonra bota "WifiKapat Tasker görevini çalıştır" diyebilirsin.
 
-#### Seviye 3 — Ekranı görerek kullanma (isteğe bağlı)
+##### Seviye 3 — Ekranı görerek kullanma (isteğe bağlı)
 1. *Ayarlar → Telefon hakkında → Yapım numarası*'na 7 kez dokun. Geliştirici seçenekleri açılır.
 2. *Geliştirici seçenekleri → **Kablosuz hata ayıklama*** → aç → *Eşleme kodu ile cihaz eşle*.
 3. Ekranı ikiye böl (Termux + ayarlar). Termux'ta:
@@ -196,8 +250,20 @@ Sonra bota "WifiKapat Tasker görevini çalıştır" diyebilirsin.
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements-dev.txt
-python -m pytest -q        # 54 test (telefon köprüsü, ajan, onay, zamanlayıcı, panel, tarayıcı...)
+python -m pytest -q        # 60 test (telefon köprüsü, ajan, onay, zamanlayıcı, panel, tarayıcı...)
 python -m bot.main         # yerelde çalıştır (.env gerekli)
 ```
 
-Klasörler: `bot/` (sunucu), `bot/tools/` (80 araç), `phone_bridge/` (Termux köprüsü), `deploy/` (kurulum), `tests/`.
+Android uygulaması:
+
+```bash
+cd android
+./gradlew testDebugUnitTest   # testler + ekran görüntüleri (app/build/screens/)
+./gradlew assembleRelease     # APK: app/build/outputs/apk/release/app-release.apk
+```
+
+Klasörler: `bot/` (sunucu), `bot/tools/` (84 araç), `android/` (YAi uygulaması), `phone_bridge/` (Termux köprüsü),
+`deploy/` (kurulum), `tests/`.
+
+> APK şu an hata ayıklama anahtarıyla imzalı. Güncellemeyi eskisinin üzerine kurabilmek için kendi imza anahtarını
+> GitHub *Secrets* bölümüne `YAI_KEYSTORE_B64` ve `YAI_KEYSTORE_PASSWORD` olarak ekle. Derleme hattı bu anahtarı otomatik kullanır.

@@ -36,10 +36,18 @@ Zaman: 08:00 · hafta içi 08:30 · pzt,cum 09:00 · +30dk · 2 saat sonra · ya
 🤝 /ajanlar  /ajan <ad>
 🔗 /google (hesap bağla)  /telefon [ac|kapat]  /bildirim [ac|kapat]
 🔊 /ses [ac|kapat]   💸 /maliyet   ✅ /onaylar   ☀️ /brifing
+📲 /uygulama (YAi Android uygulaması kurulum kodu)
 """
 
 BRIEFING = ("Sabah brifingi hazırla: bugünün tarihi, hava durumu (hafızadaki şehir; yoksa İstanbul), bugünkü takvim "
             "etkinlikleri, son 24 saatteki önemli okunmamış e-postalar ve telefon bağlıysa pil durumu. Kısa ve maddeli yaz.")
+
+
+def setup_code(url: str, dashboard_token: str, phone_token: str) -> str:
+    import base64
+    import json
+    raw = json.dumps({"u": url.rstrip("/"), "t": dashboard_token, "p": phone_token}, separators=(",", ":"))
+    return "YAI1:" + base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
 
 
 def split(text: str) -> list[str]:
@@ -343,6 +351,21 @@ class TelegramUI:
             self.app.db.clear_messages(update.effective_chat.id)
             await update.message.reply_text("🧽 Sohbet geçmişi temizlendi (kalıcı hafıza duruyor).")
 
+    async def cmd_uygulama(self, update, context):
+        """YAi Android uygulaması için kurulum kodu üretir."""
+        if not await self._guard(update):
+            return
+        url = self.app.cfg.public_url
+        if not url:
+            await update.message.reply_text(
+                "⚠️ Önce sunucuda .env dosyasına PUBLIC_URL=http://<tailscale-ip>:8080 yaz ve botu yeniden başlat.")
+            return
+        code = setup_code(url, self.app.cfg.dashboard_token, self.app.cfg.phone_token)
+        await update.message.reply_text(
+            "📲 YAi uygulaması kurulum kodu. Uygulamada 'Kurulum kodunu yapıştır' alanına yapıştır.\n"
+            "⚠️ Bu kod sunucuna tam erişim verir, kimseyle paylaşma. Kurulumdan sonra bu mesajı sil.")
+        await update.message.reply_text(code)
+
     async def cmd_brifing(self, update, context):
         if await self._guard(update):
             await self._process(update, [BRIEFING], "[Brifing istendi]")
@@ -356,7 +379,8 @@ class TelegramUI:
                          ("ajan", self.cmd_ajan), ("maliyet", self.cmd_maliyet), ("ses", self.cmd_ses),
                          ("bildirim", self.cmd_bildirim), ("telefon", self.cmd_telefon), ("google", self.cmd_google),
                          ("onaylar", self.cmd_onaylar), ("sayfalar", self.cmd_sayfalar),
-                         ("beceriler", self.cmd_beceriler), ("sifirla", self.cmd_sifirla), ("brifing", self.cmd_brifing)]:
+                         ("beceriler", self.cmd_beceriler), ("sifirla", self.cmd_sifirla), ("brifing", self.cmd_brifing),
+                         ("uygulama", self.cmd_uygulama)]:
             a.add_handler(CommandHandler(name, fn))
         a.add_handler(CallbackQueryHandler(self.on_callback, pattern=r"^ap:"))
         a.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, self.on_voice))

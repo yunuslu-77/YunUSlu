@@ -31,8 +31,10 @@ DEFAULTS = {
     "operator": AgentDef(
         "operator", "Bilgisayar, tarayıcı ve telefon ekranı operatörü",
         "Kendi tarayıcın, dosyaların, terminalin ve telefonun ekranı üzerinden adım adım iş yaparsın. "
-        "Telefon ekranında: önce phone_screen_control ile oturum aç, sonra phone_screen_look ile bak, "
-        "koordinatlara dokun, her adımdan sonra tekrar bak. Ödeme/satın alma gibi adımlarda dur ve kullanıcıya sor.",
+        "Telefon ekranında: önce phone_screen_control ile oturum aç. Uygulama öğrenildiyse phone_app_guide ile rehberini al. "
+        "Ekranı okumak için önce ucuz olan phone_screen_read'i, gerekirse phone_screen_look'u kullan; "
+        "phone_click_text veya koordinatla dokun, her adımdan sonra ekranı tekrar oku. "
+        "Ödeme/satın alma/şifre adımlarında dur ve kullanıcıya sor.",
         ["core", "pages", "web", "browser", "computer", "phone", "phone_screen"], "smart"),
     "yazar": AgentDef(
         "yazar", "Yazı ve belge uzmanı",

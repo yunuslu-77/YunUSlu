@@ -264,3 +264,31 @@ async def phone_type_text(ctx: ToolContext, text: str):
       {"key": P(str, "Tuş", enum=["back", "home", "recents", "enter", "power", "volume_up", "volume_down", "delete"])})
 async def phone_key(ctx: ToolContext, key: str):
     return await _screen(ctx, "adb_key", key=key)
+
+
+# ---------------- YAi uygulaması: erişilebilirlik ile ekran okuma ve öğrenme modu ----------------
+@tool("phone_screen_read", "Telefon ekranındaki öğeleri (yazılar, butonlar, koordinatlar) metin olarak okur. "
+      "Ekran görüntüsünden çok daha ucuzdur; önce bunu dene. YAi uygulaması gerekir.", "phone_screen")
+async def phone_screen_read(ctx: ToolContext):
+    if not _screen_ok(ctx):
+        return {"error": "Ekran kontrol oturumu yok. Önce phone_screen_control ile kullanıcıdan onay al."}
+    return _data(await _phone(ctx, "ui_tree"))
+
+
+@tool("phone_click_text", "Telefon ekranında görünen yazıya/butona tıklar (ör. 'Ara', 'Gönder').", "phone_screen",
+      {"text": P(str, "Tıklanacak öğenin yazısı veya açıklaması")})
+async def phone_click_text(ctx: ToolContext, text: str):
+    return await _screen(ctx, "click_text", text=text)
+
+
+@tool("phone_learned_apps", "Öğrenme modunda öğrenilmiş telefon uygulamalarını listeler (kullanıcının YAi uygulamasında "
+      "seçtiği uygulamalar).", "phone")
+async def phone_learned_apps(ctx: ToolContext):
+    return _data(await _phone(ctx, "learned_apps"))
+
+
+@tool("phone_app_guide", "Öğrenilmiş bir uygulamanın kullanım rehberini getirir: hangi ekranlar var, her ekranda hangi "
+      "butonlar var, hangi butona basınca hangi ekrana gidiliyor. Bir uygulamada iş yapmadan önce kullan.", "phone",
+      {"package": P(str, "Uygulama paket adı (phone_learned_apps ile bulunur)")})
+async def phone_app_guide(ctx: ToolContext, package: str):
+    return _data(await _phone(ctx, "app_guide", package=package))

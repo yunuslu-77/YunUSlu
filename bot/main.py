@@ -20,7 +20,8 @@ COMMANDS = [("yardim", "Yardım ve örnekler"), ("brifing", "Şimdi brifing haz�
             ("hafiza", "Hafızayı göster"), ("ajanlar", "Uzman ajanlar"), ("ajan", "Ajan değiştir"),
             ("telefon", "Telefon durumu"), ("google", "Google hesabını bağla"), ("ses", "Sesli cevap aç/kapat"),
             ("bildirim", "Telefon bildirimlerini ilet"), ("onaylar", "Bekleyen onaylar"), ("maliyet", "API harcaması"),
-            ("sayfalar", "Notlar/raporlar"), ("beceriler", "Öğrenilen beceriler"), ("sifirla", "Sohbeti temizle")]
+            ("sayfalar", "Notlar/raporlar"), ("beceriler", "Öğrenilen beceriler"), ("sifirla", "Sohbeti temizle"),
+            ("uygulama", "Android uygulaması kurulum kodu")]
 
 
 def check(cfg: Config) -> list[str]:

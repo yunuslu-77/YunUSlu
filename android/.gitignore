@@ -1,0 +1,7 @@
+.gradle/
+build/
+app/build/
+local.properties
+*.keystore
+!yai-release.keystore.example
+.idea/

@@ -41,6 +41,7 @@ class Config:
     dashboard_host: str = "0.0.0.0"
     dashboard_port: int = 8080
     dashboard_token: str = ""
+    public_url: str = ""
     phone_token: str = ""
     phone_notify_apps: list[str] = field(default_factory=list)
     phone_battery_threshold: int = 15
@@ -93,6 +94,7 @@ class Config:
             dashboard_host=e("DASHBOARD_HOST", "0.0.0.0"),
             dashboard_port=int(e("DASHBOARD_PORT", "8080")),
             dashboard_token=e("DASHBOARD_TOKEN", ""),
+            public_url=e("PUBLIC_URL", ""),
             phone_token=e("PHONE_TOKEN", ""),
             phone_notify_apps=_list(e("PHONE_NOTIFY_APPS", "com.whatsapp,com.google.android.gm")),
             phone_battery_threshold=int(e("PHONE_BATTERY_THRESHOLD", "15")),

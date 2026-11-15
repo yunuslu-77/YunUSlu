@@ -6,7 +6,7 @@ from datetime import datetime
 from html import escape
 
 from fastapi import FastAPI, Form, Request, WebSocket
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from . import schedules as S
 
@@ -35,7 +35,9 @@ def create_app(app) -> FastAPI:
         tok = app.cfg.dashboard_token
         if not tok:
             return False
-        given = request.query_params.get("token") or request.cookies.get("yai_token") or ""
+        bearer = request.headers.get("authorization", "")
+        bearer = bearer[7:] if bearer.lower().startswith("bearer ") else ""
+        given = bearer or request.query_params.get("token") or request.cookies.get("yai_token") or ""
         return hmac.compare_digest(given, tok)
 
     def fmt(ts) -> str:
@@ -46,12 +48,8 @@ def create_app(app) -> FastAPI:
         await ws.accept()
         await app.phone.handle(ws)
 
-    @api.get("/api/status")
-    async def status(request: Request):
-        if not authed(request):
-            return JSONResponse({"error": "yetkisiz"}, 401)
-        return {"phone": app.phone.status(), "google": app.google.connected(),
-                "spent_today": app.budget.spent_today(), "spent_month": app.budget.spent_month()}
+    from .app_api import create_router
+    api.include_router(create_router(app, authed))
 
     @api.get("/health")
     async def health():

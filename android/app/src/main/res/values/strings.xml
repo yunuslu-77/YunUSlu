@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">YAi</string>
+    <string name="accessibility_description">YAi\'nin telefon ekranını okuyup senin onayınla dokunmasını ve öğrenme modunda SADECE seçtiğin uygulamaların ekran yapısını (buton adlarını) öğrenmesini sağlar. Banka, cüzdan ve şifre uygulamaları her zaman engellidir. Yazdıkların ve şifreler kaydedilmez.</string>
+    <string name="accessibility_summary">Ekran kontrolü ve öğrenme modu</string>
+</resources>

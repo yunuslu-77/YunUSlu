@@ -1,0 +1,116 @@
+package dev.yai.app
+
+import android.graphics.Bitmap
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onRoot
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import dev.yai.app.data.SetupCode
+import dev.yai.app.ui.ChatMsg
+import dev.yai.app.ui.MainViewModel
+import dev.yai.app.ui.screens.BrainScreen
+import dev.yai.app.ui.screens.ChatScreen
+import dev.yai.app.ui.screens.HomeScreen
+import dev.yai.app.ui.screens.LearnScreen
+import dev.yai.app.ui.screens.SettingsScreen
+import dev.yai.app.ui.screens.TasksScreen
+import dev.yai.app.ui.screens.WelcomeScreen
+import dev.yai.app.ui.theme.YaiTheme
+import org.json.JSONArray
+import org.json.JSONObject
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import java.io.File
+
+/** Ekranların görüntüsünü app/build/screens/ klasörüne kaydeder (görsel kontrol için). */
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [35], qualifiers = "w400dp-h860dp-xhdpi")
+class ScreenshotTest {
+    @get:Rule val rule = createComposeRule()
+
+    private fun vm(): MainViewModel {
+        val vm = MainViewModel(ApplicationProvider.getApplicationContext())
+        vm.status.value = JSONObject("""{"bot_name":"YAi","google":true,"spent_today":0.042,"spent_month":2.37,
+            "monthly_limit":9,"pending_approvals":1,"schedules":3,"memories":12}""")
+        vm.approvals.value = listOf(JSONObject("""{"id":7,"summary":"📧 E-posta gönder\nKime: ali@ornek.com\nKonu: Yarınki toplantı"}"""))
+        vm.schedules.value = listOf(
+            JSONObject("""{"id":1,"kind":"prompt","payload":"Sabah brifingi hazırla","when":"tekrar: hafta içi 08:00","next_run":1763445600}"""),
+            JSONObject("""{"id":2,"kind":"message","payload":"Faturayı öde","when":"bir kez: 20.11.2026 09:00","next_run":1763618400}"""),
+            JSONObject("""{"id":3,"kind":"prompt","payload":"Haftalık harcama özetini çıkar","when":"tekrar: pazartesi 09:00","next_run":1763964000}"""))
+        vm.memories.value = listOf(JSONObject("""{"id":1,"fact":"İzmir'de yaşıyor"}"""), JSONObject("""{"id":2,"fact":"Kahveyi şekersiz içer"}"""))
+        vm.chat.value = listOf(ChatMsg(true, "Yarın sabah 7:30'a alarm kur ve hava nasıl olacak?"),
+            ChatMsg(false, "⏰ Alarm 07:30'a kuruldu.\n☀️ Yarın İzmir'de güneşli, 18°C. Şemsiyeye gerek yok!"),
+            ChatMsg(true, "Annemin son mesajı ne?"),
+            ChatMsg(false, "💬 Annen 18:42'de yazmış: \"Akşam yemeğe gel\". Cevap yazmamı ister misin?"))
+        return vm
+    }
+
+    private fun shot(name: String, content: @Composable () -> Unit) {
+        rule.setContent { YaiTheme(dark = name.endsWith("_dark")) {
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) { content() } } }
+        rule.waitForIdle()
+        val bmp = rule.onRoot().captureToImage().asAndroidBitmap()
+        val dir = File("build/screens").apply { mkdirs() }
+        File(dir, "$name.png").outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
+    @Test fun welcome() = shot("01_welcome") { WelcomeScreen {} }
+    @Test fun home() { val v = vm(); shot("02_home") { HomeScreen(v, {}, {}) } }
+    @Test fun homeDark() { val v = vm(); shot("02_home_dark") { HomeScreen(v, {}, {}) } }
+    @Test fun chat() { val v = vm(); shot("03_chat") { ChatScreen(v, null) {} } }
+    @Test fun chatDark() { val v = vm(); shot("03_chat_dark") { ChatScreen(v, null) {} } }
+    @Test fun settingsDark() { val v = vm(); shot("07_settings_dark") { SettingsScreen(v) {} } }
+    @Test fun tasks() { val v = vm(); shot("04_tasks") { TasksScreen(v) } }
+    @Test fun learn() = shot("05_learn") { LearnScreen() }
+    @Test fun brain() { val v = vm(); shot("06_brain") { BrainScreen(v) } }
+    @Test fun settings() { val v = vm(); shot("07_settings") { SettingsScreen(v) {} } }
+
+    @Test fun setupCode() {
+        val raw = """{"u":"http://100.1.2.3:8080","t":"tok","p":"ptok"}"""
+        val code = "YAI1:" + android.util.Base64.encodeToString(raw.toByteArray(),
+            android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP)
+        val cfg = SetupCode.parse(code)!!
+        assertEquals("http://100.1.2.3:8080", cfg.url)
+        assertEquals("ws://100.1.2.3:8080/phone/ws", cfg.wsUrl)
+        assertNull(SetupCode.parse("yanlış"))
+    }
+
+    @Test fun sensitiveApps() {
+        val s = dev.yai.app.learn.Sensitive
+        assert(s.isSensitive("com.akbank.android.apps.akbank_direkt"))
+        assert(s.isSensitive("com.x8bit.bitwarden"))
+        assert(s.isSensitive("tr.gov.turkiye.edevlet.kapisi"))
+        assert(!s.isSensitive("com.whatsapp"))
+        assert(!s.isSensitive("com.spotify.music"))
+    }
+
+    @Test fun learningStoreSkipsSensitive() {
+        val store = YaiApp.instance.learning
+        store.setEnabled("com.akbank.android", "Akbank", true)
+        store.setEnabled("com.whatsapp", "WhatsApp", true)
+        assert(!store.isLearning("com.akbank.android"))
+        assert(store.isLearning("com.whatsapp"))
+        val a = store.recordScreen("com.whatsapp", "HomeActivity", "Sohbetler", listOf("Ara", "Yeni sohbet", "Kamera"), 12)
+        val b = store.recordScreen("com.whatsapp", "SearchActivity", "", listOf("Geri", "✎ Ara…"), 0)
+        store.recordTransition(a, "Ara", b)
+        val guide = store.guideJson("com.whatsapp")
+        assertEquals(2, guide.getJSONArray("screens").length())
+        assertEquals("Ara", guide.getJSONArray("navigation").getJSONObject(0).getString("tap"))
+        assertEquals(1, store.learnedAppsJson().length())
+        @Suppress("UNUSED_VARIABLE") val unused = JSONArray()
+    }
+}
