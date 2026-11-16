@@ -34,6 +34,11 @@ class YaiAccessibilityService : AccessibilityService() {
         @Volatile var instance: YaiAccessibilityService? = null
             private set
         private const val MAX_LABEL = 30
+        /** Tanılama: hizmet gerçekten olay alıyor mu? */
+        @Volatile var lastEventAt = 0L
+        @Volatile var eventCount = 0
+        @Volatile var lastLearned = ""
+        @Volatile var lastLearnedAt = 0L
     }
 
     private val main = Handler(Looper.getMainLooper())
@@ -61,6 +66,7 @@ class YaiAccessibilityService : AccessibilityService() {
 
     // ------------------------------------------------------------------ öğrenme modu
     override fun onAccessibilityEvent(e: AccessibilityEvent) {
+        lastEventAt = System.currentTimeMillis(); eventCount++
         val pkg = e.packageName?.toString() ?: return
         if (Sensitive.isSensitive(pkg)) return
         val store = YaiApp.instance.learning
@@ -112,6 +118,9 @@ class YaiAccessibilityService : AccessibilityService() {
         walk(root, false, 0)
         if (controls.isEmpty()) return
         val id = store.recordScreen(pkg, currentActivity.substringAfterLast('.'), title, controls.toList(), listItems)
+        lastLearned = runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg) +
+            " › " + title.ifBlank { currentActivity.substringAfterLast('.').ifBlank { "ekran" } } + " (${controls.size} buton)"
+        lastLearnedAt = System.currentTimeMillis()
         lastClickLabel?.let { if (lastScreenId > 0) store.recordTransition(lastScreenId, it, id) }
         lastClickLabel = null
         lastScreenId = id

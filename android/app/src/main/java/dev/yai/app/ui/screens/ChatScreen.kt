@@ -59,6 +59,8 @@ import androidx.compose.ui.unit.dp
 import dev.yai.app.ui.ChatMsg
 import dev.yai.app.ui.MainViewModel
 import dev.yai.app.ui.components.EmptyState
+import dev.yai.app.ui.components.MarkdownText
+import dev.yai.app.ui.components.ToolCard
 import dev.yai.app.ui.components.YaiLogo
 import dev.yai.app.ui.theme.Brand
 import java.util.Locale
@@ -68,6 +70,7 @@ fun ChatScreen(vm: MainViewModel, prefill: String?, consumePrefill: () -> Unit) 
     val ctx = LocalContext.current
     val messages by vm.chat.collectAsState()
     val thinking by vm.thinking.collectAsState()
+    val pending by vm.pendingIds.collectAsState()
     var input by rememberSaveable { mutableStateOf("") }
     var speak by remember { mutableStateOf(vm.prefs.speakReplies) }
     val list = rememberLazyListState()
@@ -107,7 +110,12 @@ fun ChatScreen(vm: MainViewModel, prefill: String?, consumePrefill: () -> Unit) 
                 EmptyState(Icons.Rounded.Mic, "Merhaba! 👋",
                     "Yaz ya da mikrofona dokunup konuş.\n\"Her sabah 8'de brifing ver\", \"Annemi ara\", \"Okunmamış maillerimi özetle\"")
             }
-            items(messages) { Bubble(it) }
+            items(messages) { m ->
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (!m.fromUser) m.events.forEach { ev -> ToolCard(ev, pending) { id, ok -> vm.decide(id.toInt(), ok) } }
+                    if (m.text.isNotBlank() && m.text != "👍") Bubble(m)
+                }
+            }
             if (thinking) item { Typing() }
         }
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.Bottom) {
@@ -137,12 +145,12 @@ fun ChatScreen(vm: MainViewModel, prefill: String?, consumePrefill: () -> Unit) 
 private fun Bubble(m: ChatMsg) {
     val shape = if (m.fromUser) RoundedCornerShape(20.dp, 20.dp, 6.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 6.dp)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (m.fromUser) Arrangement.End else Arrangement.Start) {
-        Box(Modifier.widthIn(max = 310.dp).clip(shape)
+        Box(Modifier.widthIn(max = 320.dp).clip(shape)
             .then(if (m.fromUser) Modifier.background(Brand.softGradient) else Modifier.background(MaterialTheme.colorScheme.surface))
             .padding(horizontal = 14.dp, vertical = 10.dp)) {
             SelectionContainer {
-                Text(m.text, color = if (m.fromUser) Color.White else MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyLarge)
+                if (m.fromUser) Text(m.text, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                else MarkdownText(m.text)
             }
         }
     }

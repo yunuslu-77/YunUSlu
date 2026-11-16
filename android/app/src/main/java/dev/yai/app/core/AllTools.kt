@@ -71,6 +71,12 @@ fun allTools(): List<Tool> = listOf(
     tool("forget", "Hafızadan bir bilgiyi siler.", "memory_id" to P.int("Hafıza id")) { c, a ->
         JSONObject().put("deleted", c.yai.db.deleteMemory(a.getLong("memory_id"))) },
 
+    tool("calculate", "Kesin hesap yapar: + - * / ^ % parantez, sqrt(), sin(), cos(), log(), ln(), pi. Örn: '2500*1.18', '(450-380)/380*100', '15%'.",
+        "expression" to P.str("Matematik ifadesi"), "label" to P.str("Kısa açıklama (ör. KDV dahil fiyat)", false)) { _, a ->
+        val v = try { Calc.eval(a.getString("expression")) } catch (e: Exception) { throw ToolError(e.message ?: "Hesaplanamadı") }
+        JSONObject().put("expression", a.getString("expression")).put("result", Calc.format(v)).put("label", a.optString("label"))
+    },
+
     // ================= notlar =================
     tool("create_page", "Not/rapor sayfası oluşturur (Beyin → Sayfalar'da görünür).", "title" to P.str("Başlık"), "content" to P.str("İçerik")) { c, a ->
         JSONObject().put("page_id", c.yai.db.savePage(null, a.getString("title"), a.getString("content"))) },
@@ -220,7 +226,19 @@ fun allTools(): List<Tool> = listOf(
         val all = phone(c, "list_apps") as JSONArray; val q = a.optString("query").lowercase()
         JSONArray().apply { for (i in 0 until all.length()) all.getString(i).let { if (q.isBlank() || q in it.lowercase()) put(it) } }
     },
-    tool("phone_open_app", "Uygulama açar (paket adıyla; bilmiyorsan phone_list_apps).", "package" to P.str("Paket adı")) { c, a -> phone(c, "open_app", a) },
+    tool("phone_open_app", "Uygulama açar. Uygulamanın adını (ör. 'WhatsApp', 'YouTube') veya paket adını yaz.",
+        "app" to P.str("Uygulama adı veya paket adı")) { c, a ->
+        val q = a.optString("app").ifBlank { a.optString("package") }.trim()
+        val pkg = if (q.contains('.') && !q.contains(' ')) q else {
+            val all = phone(c, "list_apps") as JSONArray
+            val items = (0 until all.length()).map { all.getString(it) }   // "Ad (paket)"
+            val hit = items.firstOrNull { it.substringBefore(" (").equals(q, true) }
+                ?: items.firstOrNull { it.substringBefore(" (").contains(q, true) }
+                ?: throw ToolError("'$q' adında uygulama bulunamadı")
+            hit.substringAfterLast("(").removeSuffix(")")
+        }
+        phone(c, "open_app", JSONObject().put("package", pkg))
+    },
     tool("phone_set_alarm", "Saat uygulamasına alarm kurar.", "hour" to P.int("Saat"), "minute" to P.int("Dakika"), "label" to P.str("Etiket", false)) { c, a ->
         phone(c, "alarm", a) },
     tool("phone_set_timer", "Geri sayım sayacı kurar.", "seconds" to P.int("Saniye"), "label" to P.str("Etiket", false)) { c, a -> phone(c, "timer", a) },
@@ -228,7 +246,8 @@ fun allTools(): List<Tool> = listOf(
 
     // ================= ekran kontrolü ve öğrenme =================
     tool("phone_screen_control", "Ekran kontrol oturumu başlatır (dokunma/okuma/yazma için gerekir; kullanıcı onaylar).",
-        "minutes" to P.int("Süre (en fazla 30)"), "reason" to P.str("Ne yapılacak"), approval = approvalAlways(),
+        "minutes" to P.int("Süre (en fazla 30)"), "reason" to P.str("Ne yapılacak"),
+        approval = { dev.yai.app.YaiApp.instance.prefs.screenAsk },
         summary = { "🖐️ Ekranı ${it.optInt("minutes").coerceIn(1, 30)} dk kontrol et\nAmaç: ${it.optString("reason")}" }) { c, a ->
         if (YaiAccessibilityService.instance == null) throw ToolError("Ekran kontrolü kapalı: Ayarlar → İzinler → 'Ekran kontrolü ve öğrenme'")
         c.yai.prefs.screenUntil = System.currentTimeMillis() + a.optInt("minutes", 5).coerceIn(1, 30) * 60_000L

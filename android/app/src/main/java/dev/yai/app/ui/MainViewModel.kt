@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-data class ChatMsg(val fromUser: Boolean, val text: String, val time: Long = System.currentTimeMillis())
+data class ChatMsg(val fromUser: Boolean, val text: String, val time: Long = System.currentTimeMillis(),
+                   val events: List<dev.yai.app.core.ToolEvent> = emptyList())
 
 /** Arayüz durumu. Veriler doğrudan telefondaki YAi'den gelir (sunucu yok). */
 class MainViewModel(app: Application) : AndroidViewModel(app) {
@@ -29,6 +30,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val pages = MutableStateFlow<List<JSONObject>>(emptyList())
     val chat = MutableStateFlow<List<ChatMsg>>(emptyList())
     val thinking = MutableStateFlow(false)
+    val pendingIds = MutableStateFlow<Set<Long>>(emptySet())
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
@@ -50,7 +52,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         memories.value = db.memories().map { JSONObject().put("id", it.id).put("fact", it.fact) }
         skills.value = db.skills().let { s -> (0 until s.length()).map { s.getJSONObject(it) } }
         pages.value = db.pages().map { JSONObject().put("id", it.id).put("title", it.title) }
-        chat.value = db.recentMessages(80).map { ChatMsg(it.role == "user", it.text, it.ts) }
+        chat.value = db.recentMessages(80).filter { !it.text.startsWith("[Sistem]") }.map { m ->
+            ChatMsg(m.role == "user", m.text.removePrefix("[Zamanlanmış görev] "), m.ts, m.cards?.let { c ->
+                runCatching { org.json.JSONArray(c).let { a -> (0 until a.length()).map { dev.yai.app.core.ToolEvent.fromJson(a.getJSONObject(it)) } } }
+                    .getOrDefault(emptyList()) } ?: emptyList())
+        }
+        pendingIds.value = db.pendingApprovals().map { it.id }.toSet()
     }
 
     fun send(text: String, image: Pair<ByteArray, String>? = null, onReply: (String) -> Unit = {}) {
@@ -59,7 +66,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         thinking.value = true
         viewModelScope.launch {
             val reply = try {
-                withContext(Dispatchers.Default) { yai.agent.handleUser(text, image) }
+                withContext(Dispatchers.Default) { yai.agent.handle(text, image).text }
             } catch (e: Exception) { "⚠️ ${e.message}" }
             thinking.value = false
             refreshAll()
@@ -70,7 +77,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun decide(id: Int, approve: Boolean) {
         thinking.value = true
         viewModelScope.launch {
-            try { withContext(Dispatchers.Default) { yai.agent.resolveApproval(id.toLong(), approve) } }
+            try { withContext(Dispatchers.Default) { yai.agent.resolve(id.toLong(), approve) } }
             catch (e: Exception) { _error.value = e.message }
             thinking.value = false
             refreshAll()

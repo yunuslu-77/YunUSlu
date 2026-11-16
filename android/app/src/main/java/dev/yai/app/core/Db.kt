@@ -9,10 +9,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /** YAi'nin telefondaki hafızası: sohbet, kalıcı bilgiler, notlar, görevler, onaylar, maliyet, kayıtlar. */
-class Db(context: Context, name: String? = "yai.db") : SQLiteOpenHelper(context, name, null, 1) {
+class Db(context: Context, name: String? = "yai.db") : SQLiteOpenHelper(context, name, null, 2) {
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE messages(id INTEGER PRIMARY KEY AUTOINCREMENT, role TEXT, text TEXT, ts INTEGER)")
+        db.execSQL("CREATE TABLE messages(id INTEGER PRIMARY KEY AUTOINCREMENT, role TEXT, text TEXT, ts INTEGER, cards TEXT)")
         db.execSQL("CREATE TABLE memories(id INTEGER PRIMARY KEY AUTOINCREMENT, fact TEXT, ts INTEGER)")
         db.execSQL("CREATE TABLE pages(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, content TEXT, updated INTEGER)")
         db.execSQL("""CREATE TABLE schedules(id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, payload TEXT,
@@ -24,7 +24,9 @@ class Db(context: Context, name: String? = "yai.db") : SQLiteOpenHelper(context,
         db.execSQL("CREATE TABLE skills(name TEXT PRIMARY KEY, trigger TEXT, steps TEXT, uses INTEGER DEFAULT 0)")
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, o: Int, n: Int) {}
+    override fun onUpgrade(db: SQLiteDatabase, o: Int, n: Int) {
+        if (o < 2) db.execSQL("ALTER TABLE messages ADD COLUMN cards TEXT")
+    }
 
     private fun <T> query(sql: String, args: Array<String> = emptyArray(), map: (Cursor) -> T): List<T> =
         readableDatabase.rawQuery(sql, args).use { c -> buildList { while (c.moveToNext()) add(map(c)) } }
@@ -40,11 +42,16 @@ class Db(context: Context, name: String? = "yai.db") : SQLiteOpenHelper(context,
     private fun now() = System.currentTimeMillis()
 
     // ---------------- sohbet ----------------
-    data class Msg(val role: String, val text: String, val ts: Long)
+    data class Msg(val role: String, val text: String, val ts: Long, val cards: String? = null)
 
-    fun addMessage(role: String, text: String) { insert("messages", "role" to role, "text" to text, "ts" to now()) }
+    fun addMessage(role: String, text: String, cards: String? = null) {
+        insert("messages", "role" to role, "text" to text, "ts" to now(), "cards" to cards)
+    }
     fun recentMessages(limit: Int): List<Msg> =
-        query("SELECT role,text,ts FROM messages ORDER BY id DESC LIMIT $limit") { Msg(it.getString(0), it.getString(1), it.getLong(2)) }.reversed()
+        query("SELECT role,text,ts,cards FROM messages ORDER BY id DESC LIMIT $limit") {
+            Msg(it.getString(0), it.getString(1), it.getLong(2), if (it.isNull(3)) null else it.getString(3)) }.reversed()
+    fun recentAudit(limit: Int): List<Triple<String, Boolean, String>> =
+        query("SELECT tool, ok, result FROM audit ORDER BY id DESC LIMIT $limit") { Triple(it.getString(0), it.getInt(1) == 1, it.getString(2)) }
     fun clearMessages() { writableDatabase.delete("messages", null, null) }
 
     // ---------------- hafıza ----------------

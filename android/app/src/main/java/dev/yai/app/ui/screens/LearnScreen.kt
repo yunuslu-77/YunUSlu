@@ -105,6 +105,7 @@ fun LearnScreen() {
                 }
             }
         }
+        item { LearnStatus(a11yOn) }
         if (!a11yOn) item {
             YaiCard {
                 Text("Önce ekran erişimini aç", style = MaterialTheme.typography.titleMedium)
@@ -144,6 +145,39 @@ fun LearnScreen() {
                 else Switch(checked = enabled, onCheckedChange = { store.setEnabled(app.pkg, app.label, it); version++ },
                     colors = SwitchDefaults.colors(checkedTrackColor = Brand.Violet))
             }
+        }
+    }
+}
+
+
+@Composable
+private fun LearnStatus(a11yOn: Boolean) {
+    val ctx = LocalContext.current
+    var now by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(2000); now = System.currentTimeMillis() } }
+    fun ago(t: Long) = if (t == 0L) "hiç" else ((now - t) / 1000).let { if (it < 60) "$it sn önce" else "${it / 60} dk önce" }
+    YaiCard {
+        Text("Öğrenme durumu", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(6.dp))
+        Text((if (a11yOn) "✅ Ekran erişimi açık" else "❌ Ekran erişimi kapalı") +
+            "\n• Son ekran olayı: ${ago(YaiAccessibilityService.lastEventAt)} (${YaiAccessibilityService.eventCount} olay)" +
+            "\n• Son öğrenilen: ${YaiAccessibilityService.lastLearned.ifBlank { "henüz yok" }}" +
+            (if (YaiAccessibilityService.lastLearnedAt > 0) " · ${ago(YaiAccessibilityService.lastLearnedAt)}" else ""),
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (a11yOn && YaiAccessibilityService.eventCount == 0 || !a11yOn) {
+            Spacer(Modifier.height(10.dp))
+            Text("Tecno / HiOS için ayarlar", style = MaterialTheme.typography.titleMedium, color = Brand.Deep)
+            Text("1. Ayarlar → Uygulamalar → YAi → ⋮ (sağ üst) → Kısıtlı ayarlara izin ver\n" +
+                "2. Ayarlar → Erişilebilirlik → Yüklü uygulamalar → YAi ekran kontrolü → Aç\n" +
+                "3. Phone Master → Otomatik başlatma → YAi'yi aç\n" +
+                "4. Ayarlar → Pil → YAi → Kısıtlama yok\n" +
+                "5. Son uygulamalar ekranında YAi'yi kilitle (kartı aşağı çek)", style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = { ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                android.net.Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("YAi uygulama ayarlarını aç") }
+        } else {
+            Text("İpucu: Bir uygulamayı aşağıdan açıp kullan; 'Son öğrenilen' satırı değişiyorsa öğrenme çalışıyor.",
+                style = MaterialTheme.typography.labelMedium, color = Brand.Deep, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }

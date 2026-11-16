@@ -126,6 +126,11 @@ fun SettingsScreen(vm: MainViewModel, back: () -> Unit) {
             ListRow(Icons.Rounded.PhoneAndroid, Brand.Cyan, "YAi telefonu kullanabilsin", "SMS, arama, alarm, ekran kontrolü…") {
                 Switch(phoneOn, { phoneOn = it; vm.prefs.phoneEnabled = it }, colors = SwitchDefaults.colors(checkedTrackColor = Brand.Violet))
             }
+            var ask by remember { mutableStateOf(vm.prefs.screenAsk) }
+            ListRow(Icons.Rounded.Accessibility, Brand.Sky, "Ekran kontrolü için her seferinde sor",
+                if (ask) "Her seferinde onay ister" else "Tam erişim: sormadan kontrol eder (SMS/arama yine sorar)") {
+                Switch(ask, { ask = it; vm.prefs.screenAsk = it }, colors = SwitchDefaults.colors(checkedTrackColor = Brand.Violet))
+            }
             TextButton(onClick = { vm.clearChat() }) { Text("Sohbet geçmişini temizle") }
         }
 
@@ -158,6 +163,8 @@ fun SettingsScreen(vm: MainViewModel, back: () -> Unit) {
             }
         }
 
+        SectionTitle("Tanılama (yapay zekâsız doğrudan test)")
+        Diagnostics(vm)
         Spacer(Modifier.height(16.dp))
         Text("YAi ${runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: ""}",
             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -177,3 +184,48 @@ private fun Perm(icon: androidx.compose.ui.graphics.vector.ImageVector, title: S
     }
 }
 
+
+
+@Composable
+private fun Diagnostics(vm: MainViewModel) {
+    val scope = rememberCoroutineScope()
+    var out by remember { mutableStateOf("Bir teste dokun. Sonuç burada görünür; ekran görüntüsünü bana gönderebilirsin.") }
+    var busy by remember { mutableStateOf(false) }
+    fun run(name: String, block: suspend () -> String) {
+        if (busy) return
+        busy = true; out = "⏳ $name…"
+        scope.launch {
+            out = try { "✅ $name: " + block() } catch (e: Exception) { "❌ $name: ${e.message ?: e.javaClass.simpleName}" }
+            busy = false
+        }
+    }
+    val cmd = vm.yai.commands
+    YaiCard {
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+            listOf<Pair<String, suspend () -> String>>(
+                "Gemini" to { (vm.yai.llm as? dev.yai.app.core.Gemini)?.ping()?.let { "cevap: $it" } ?: "?" },
+                "Fener" to { cmd.execute("torch", org.json.JSONObject().put("on", true)); kotlinx.coroutines.delay(1500)
+                    cmd.execute("torch", org.json.JSONObject().put("on", false)); "1,5 sn yandı" },
+                "Sayaç 10 sn" to { cmd.execute("timer", org.json.JSONObject().put("seconds", 10).put("label", "YAi test")).data.toString() },
+                "Titreşim" to { cmd.execute("vibrate", org.json.JSONObject().put("ms", 600)); "titreşti" },
+                "Pil" to { cmd.execute("battery", org.json.JSONObject()).data.toString() },
+                "Bildirimler" to { (cmd.execute("notifications", org.json.JSONObject()).data as org.json.JSONArray).length().toString() + " bildirim" },
+                "SMS okuma" to { (cmd.execute("sms_list", org.json.JSONObject().put("limit", 3)).data as org.json.JSONArray).length().toString() + " SMS" },
+                "Konum" to { cmd.execute("location", org.json.JSONObject()).data.toString().take(120) },
+                "Ekran erişimi" to { if (YaiAccessibilityService.instance != null) "açık, ${YaiAccessibilityService.eventCount} olay alındı"
+                    else throw Exception("kapalı — Ayarlar → Erişilebilirlik → YAi ekran kontrolü") },
+            ).forEach { (name, block) ->
+                androidx.compose.material3.AssistChip(onClick = { run(name, block) }, label = { Text(name) })
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(out, style = MaterialTheme.typography.bodyMedium, color = if (out.startsWith("❌")) Brand.Danger else Brand.Deep)
+        Spacer(Modifier.height(10.dp))
+        Text("Son işlemler", style = MaterialTheme.typography.titleMedium)
+        vm.yai.db.recentAudit(8).forEach { (tool, ok, res) ->
+            Text("${if (ok) "✅" else "❌"} $tool — ${res.take(90)}", style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}

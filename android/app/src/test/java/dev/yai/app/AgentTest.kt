@@ -145,6 +145,29 @@ class AgentTest {
         assertTrue("bütçe" in y2.agent.handleUser("x").lowercase())
     }
 
+    @Test fun nudgesWhenClaimingWithoutTool() = runTest {
+        llm.script.add("Feneri açtım! 🔦")                                  // araç çağırmadan "açtım"
+        llm.script.add(listOf("calculate" to JSONObject().put("expression", "2+2")))
+        llm.script.add("Tamam")
+        val r = yai.agent.handle("feneri aç")
+        assertEquals("Tamam", r.text)
+        assertTrue("Hiçbir araç çağırmadın" in llm.requests[1].toString())
+        assertEquals("calculate", r.events.single().name)
+        // kartlar geçmişe kaydedilir
+        assertTrue(yai.db.recentMessages(5).last().cards!!.contains("calculate"))
+    }
+
+    @Test fun calculator() {
+        val c = dev.yai.app.core.Calc
+        assertEquals("2950", c.format(c.eval("2500*1.18")))
+        assertEquals("18.4210526316", c.format(c.eval("(450-380)/380*100")))
+        assertEquals("0.15", c.format(c.eval("15%")))
+        assertEquals("1024", c.format(c.eval("2^10")))
+        assertEquals("12", c.format(c.eval("sqrt(144)")))
+        assertEquals("7", c.format(c.eval("3 + 4")))
+        try { c.eval("5/0"); throw AssertionError() } catch (_: ArithmeticException) {}
+    }
+
     @Test fun timeParse() {
         val z = ZoneId.of("Europe/Istanbul")
         val now = ZonedDateTime.of(LocalDate.of(2026, 11, 15), LocalTime.of(10, 0), z)  // Pazar

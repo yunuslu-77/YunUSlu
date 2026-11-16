@@ -51,10 +51,18 @@ class ScreenshotTest {
             JSONObject("""{"id":2,"kind":"message","payload":"Faturayı öde","when":"bir kez: 20.11.2026 09:00","next_run":1763618400}"""),
             JSONObject("""{"id":3,"kind":"prompt","payload":"Haftalık harcama özetini çıkar","when":"tekrar: pazartesi 09:00","next_run":1763964000}"""))
         vm.memories.value = listOf(JSONObject("""{"id":1,"fact":"İzmir'de yaşıyor"}"""), JSONObject("""{"id":2,"fact":"Kahveyi şekersiz içer"}"""))
-        vm.chat.value = listOf(ChatMsg(true, "Yarın sabah 7:30'a alarm kur ve hava nasıl olacak?"),
-            ChatMsg(false, "⏰ Alarm 07:30'a kuruldu.\n☀️ Yarın İzmir'de güneşli, 18°C. Şemsiyeye gerek yok!"),
-            ChatMsg(true, "Annemin son mesajı ne?"),
-            ChatMsg(false, "💬 Annen 18:42'de yazmış: \"Akşam yemeğe gel\". Cevap yazmamı ister misin?"))
+        val ev = { n: String, a: String, r: String -> dev.yai.app.core.ToolEvent(n, JSONObject(a), r, true) }
+        vm.chat.value = listOf(ChatMsg(true, "Yarın 7:30'a alarm kur, İzmir'de hava nasıl?"),
+            ChatMsg(false, "Alarmın hazır, yarın **güneşli** görünüyor ☀️", events = listOf(
+                ev("phone_set_alarm", """{"hour":7,"minute":30,"label":"Uyan"}""", """{"alarm":"07:30"}"""),
+                ev("get_weather", "{}", """{"yer":"İzmir","şimdi":{"sıcaklık":18.4,"hissedilen":17,"durum":"açık"},"tahmin":[
+                    {"durum":"açık","max":21,"min":12,"yağış_%":0},{"durum":"parçalı bulutlu","max":19,"min":11,"yağış_%":10},
+                    {"durum":"hafif yağmur","max":16,"min":10,"yağış_%":70}]}"""))),
+            ChatMsg(true, "Anneme 'geliyorum' yaz ve 2500 TL'nin %18 KDV'li hali?"),
+            ChatMsg(false, "Hesap:\n- KDV oranı: **%18**\n- Toplam: `2500 × 1.18`\n\n| Kalem | Tutar |\n|---|---|\n| Net | 2500 ₺ |\n| KDV | 450 ₺ |", events = listOf(
+                ev("phone_sms_send", """{"number":"Anne","text":"Geliyorum"}""", """{"status":"onay_bekleniyor","approval_id":7}"""),
+                ev("calculate", "{}", """{"expression":"2500*1.18","result":"2950","label":"KDV dahil fiyat"}"""))))
+        vm.pendingIds.value = setOf(7L)
         return vm
     }
 

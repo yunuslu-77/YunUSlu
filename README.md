@@ -54,7 +54,7 @@ Onay gereken işler için bildirimde **Onayla / İptal** butonları çıkar.
 
 <p align="center">
   <img src="docs/screens/02_home.png" width="190"> <img src="docs/screens/03_chat.png" width="190">
-  <img src="docs/screens/05_learn.png" width="190"> <img src="docs/screens/02_home_dark.png" width="190">
+  <img src="docs/screens/05_learn.png" width="190"> <img src="docs/screens/07_settings.png" width="190">
 </p>
 
 Her şeyi telefondan yönetebilmen için yazılmış yerli Android uygulaması (Kotlin + Jetpack Compose, Material 3):
