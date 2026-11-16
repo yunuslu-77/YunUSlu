@@ -131,3 +131,11 @@ def test_registry_complete():
         assert m in REGISTRY, m
     for name in ["gmail_send", "phone_sms_send", "phone_call", "run_shell", "phone_screen_control", "save_skill"]:
         assert REGISTRY[name].needs_approval({"command": "x", "number": "1", "text": "x"}), name
+
+
+async def test_browser_tools_hidden_without_playwright(app, llm, monkeypatch):
+    monkeypatch.setattr(type(app.browser), "available", property(lambda self: False))
+    llm.push("ok")
+    await app.agent.run_task(42, "araştır", agent="arastirmaci")
+    names = {t["name"] for t in llm.calls[-1]["tools"]}
+    assert "browser_open" not in names and "web_search" in names

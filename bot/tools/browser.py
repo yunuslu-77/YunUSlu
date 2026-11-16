@@ -15,6 +15,12 @@ class BrowserManager:
         self.page = None
         self._lock = asyncio.Lock()
 
+    @property
+    def available(self) -> bool:
+        """Playwright kurulu mu? (Telefonda/Termux'ta kurulu değildir; o zaman tarayıcı araçları gizlenir.)"""
+        import importlib.util
+        return importlib.util.find_spec("playwright") is not None
+
     async def get_page(self):
         async with self._lock:
             if self.page and not self.page.is_closed():

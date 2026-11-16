@@ -76,7 +76,26 @@ Telefon (Telegram + Termux köprüsü) ──Tailscale (şifreli)──► Googl
 
 ---
 
-## 🚀 Kurulum (adım adım)
+## 📱 Kurulum A — Her şey kendi telefonunda (kartsız, sunucusuz)
+
+Botun kendisi de telefonda, Termux içinde çalışır. Google Cloud, kart ve Tailscale gerekmez.
+
+1. **F-Droid**'den **Termux**, **Termux:API** ve **Termux:Boot** uygulamalarını kur.
+2. Termux'u aç ve şunu yaz (kurulum 15-30 dk sürebilir, telefonu şarja tak):
+   ```bash
+   pkg install -y git && git clone -b ccr-bea6ae63-isiiit https://github.com/yunuslu-77/YunUSlu.git ~/yai
+   bash ~/yai/deploy/termux_install.sh
+   ```
+3. `nano ~/yai/.env` → `GEMINI_API_KEY=` ve `TELEGRAM_TOKEN=` satırlarını doldur → `~/yai-start.sh`
+4. Telegram'da botuna `/start` yaz → verdiği ID'yi `.env` dosyasında `TELEGRAM_OWNER_ID=` satırına yaz → `~/yai-start.sh`
+5. **YAi.apk**'yı kur → Telegram'da `/uygulama` yaz → gelen kodu uygulamaya yapıştır → **Ayarlar → İzinler** ekranındaki her satırı aç.
+6. Termux ve Termux:Boot için pil kısıtlamasını kaldır. Telefon yeniden açılınca bot kendi başlar.
+7. Ara sıra yedek al: `termux-setup-storage` (bir kez), sonra `~/yai-backup.sh`.
+
+> Farklar: telefon kapalıysa veya internet yoksa bot da çalışmaz. Botun kendi tarayıcısı (site gezme, form doldurma)
+> bu kurulumda yoktur; web araması ve sayfa okuma çalışır.
+
+## 🚀 Kurulum B — Bulut sunucu (7/24, Google Cloud)
 
 ### Adım 0 — Anahtarları al (10 dk)
 

@@ -95,7 +95,8 @@ Durum: {' | '.join(status)}
 
     # ------------------------------------------------------------------ döngü
     async def _loop(self, ctx: ToolContext, contents: list, a: AgentDef) -> str:
-        tools = [t.declaration() for t in tools_for_groups(a.groups)]
+        groups = [g for g in a.groups if g != "browser" or self.app.browser.available]
+        tools = [t.declaration() for t in tools_for_groups(groups)]
         system = self.system_prompt(a)
         try:
             for _ in range(self.app.cfg.max_tool_steps):
