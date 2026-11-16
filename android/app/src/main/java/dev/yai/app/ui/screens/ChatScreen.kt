@@ -81,11 +81,10 @@ fun ChatScreen(vm: MainViewModel, prefill: String?, consumePrefill: () -> Unit) 
     val onReply: (String) -> Unit = { r -> if (speak) tts.value?.speak(r.take(600), TextToSpeech.QUEUE_FLUSH, null, "yai") }
 
     val mic = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
-        res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let { vm.send(it, onReply) }
+        res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let { vm.send(it, onReply = onReply) }
     }
 
-    LaunchedEffect(Unit) { vm.loadHistory() }
-    LaunchedEffect(prefill) { prefill?.let { vm.send(it, onReply); consumePrefill() } }
+    LaunchedEffect(prefill) { prefill?.let { vm.send(it, onReply = onReply); consumePrefill() } }
     LaunchedEffect(messages.size, thinking) { if (messages.isNotEmpty()) list.animateScrollToItem(messages.size + if (thinking) 1 else 0) }
 
     Column(Modifier.fillMaxSize().imePadding()) {
@@ -120,7 +119,7 @@ fun ChatScreen(vm: MainViewModel, prefill: String?, consumePrefill: () -> Unit) 
             val canSend = input.isNotBlank()
             Box(Modifier.size(52.dp).clip(CircleShape).background(Brand.gradient), contentAlignment = Alignment.Center) {
                 IconButton(onClick = {
-                    if (canSend) { vm.send(input.trim(), onReply); input = "" }
+                    if (canSend) { vm.send(input.trim(), onReply = onReply); input = "" }
                     else mic.launch(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                         .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                         .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "tr-TR")

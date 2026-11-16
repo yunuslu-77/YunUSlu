@@ -36,8 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import dev.yai.app.bridge.BridgeService
-import dev.yai.app.data.SetupCode
+import dev.yai.app.core.Alarms
 import dev.yai.app.ui.MainViewModel
 import dev.yai.app.ui.screens.BrainScreen
 import dev.yai.app.ui.screens.ChatScreen
@@ -52,22 +51,19 @@ import dev.yai.app.ui.theme.YaiTheme
 
 class MainActivity : ComponentActivity() {
     private val vm: MainViewModel by viewModels()
-    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        if (vm.prefs.bridgeEnabled && vm.prefs.server.isComplete) BridgeService.start(this)
-    }
+    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (vm.prefs.server.isComplete && vm.prefs.bridgeEnabled) BridgeService.start(this)
+        (vm.yai.alarms as? Alarms)?.rearmAll()
 
         setContent {
             YaiTheme {
                 var onboarded by remember { mutableStateOf(vm.prefs.onboarded) }
                 if (!onboarded) {
-                    WelcomeScreen { code ->
-                        code?.let { SetupCode.parse(it) }?.let { vm.prefs.server = it }
+                    WelcomeScreen(testKey = { vm.saveAndTestKey(it) }) {
                         vm.prefs.onboarded = true
                         onboarded = true
                         permissions.launch(RUNTIME_PERMISSIONS)
@@ -81,7 +77,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (vm.prefs.server.isComplete) vm.refreshAll()
+        vm.refreshAll()
     }
 }
 

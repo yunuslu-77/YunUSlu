@@ -42,7 +42,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import android.app.AlarmManager
+import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -55,9 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import dev.yai.app.bridge.BridgeService
 import dev.yai.app.bridge.YaiAccessibilityService
-import dev.yai.app.data.SetupCode
 import dev.yai.app.ui.MainViewModel
 import dev.yai.app.ui.components.ListRow
 import dev.yai.app.ui.components.SectionTitle
@@ -69,6 +71,7 @@ val RUNTIME_PERMISSIONS = arrayOf(
     Manifest.permission.CALL_PHONE, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS,
     Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.CAMERA,
     Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS,
+    Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR,
 )
 
 private fun granted(ctx: Context, p: String) = ContextCompat.checkSelfPermission(ctx, p) == PackageManager.PERMISSION_GRANTED
@@ -76,16 +79,14 @@ private fun granted(ctx: Context, p: String) = ContextCompat.checkSelfPermission
 @Composable
 fun SettingsScreen(vm: MainViewModel, back: () -> Unit) {
     val ctx = LocalContext.current
-    val settings by vm.settings.collectAsState()
-    val bridge by BridgeService.state.collectAsState()
-    val bridgeDetail by BridgeService.detail.collectAsState()
-    var code by remember { mutableStateOf("") }
-    var codeMsg by remember { mutableStateOf<String?>(null) }
-    var bridgeOn by remember { mutableStateOf(vm.prefs.bridgeEnabled) }
-    var device by remember { mutableStateOf(vm.prefs.deviceName) }
+    val scope = rememberCoroutineScope()
+    var key by remember { mutableStateOf("") }
+    var keyMsg by remember { mutableStateOf<String?>(null) }
+    var phoneOn by remember { mutableStateOf(vm.prefs.phoneEnabled) }
+    var monthly by remember { mutableStateOf(vm.prefs.monthlyLimit.toString()) }
+    var daily by remember { mutableStateOf(vm.prefs.dailyLimit.toString()) }
     var tick by remember { mutableIntStateOf(0) }
     LifecycleResumeEffect(Unit) { tick++; onPauseOrDispose { } }
-    LaunchedEffect(Unit) { runCatching { vm.refreshAll() } }
     val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { tick++ }
     fun open(i: Intent) = runCatching { ctx.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
 
@@ -95,33 +96,37 @@ fun SettingsScreen(vm: MainViewModel, back: () -> Unit) {
             Text("Ayarlar", style = MaterialTheme.typography.headlineMedium)
         }
 
-        SectionTitle("Sunucu bağlantısı")
+        SectionTitle("Gemini API anahtarı")
         YaiCard {
-            ListRow(Icons.Rounded.Link, Brand.Violet, vm.prefs.server.url.ifBlank { "Ayarlı değil" },
-                if (vm.prefs.server.isComplete) "Kurulum kodu girildi" else "Telegram'da /uygulama yaz ve kodu buraya yapıştır")
-            OutlinedTextField(code, { code = it; codeMsg = null }, label = { Text("Kurulum kodu (YAI1:…)") },
-                modifier = Modifier.fillMaxWidth(), singleLine = true)
-            codeMsg?.let { Text(it, color = if (it.startsWith("✓")) Brand.Success else MaterialTheme.colorScheme.error,
+            ListRow(Icons.Rounded.Key, Brand.Violet, if (vm.prefs.hasKey) "Anahtar kayıtlı ✓" else "Anahtar yok",
+                if (vm.prefs.hasKey) "…" + vm.prefs.apiKey.takeLast(4) else "aistudio.google.com/apikey adresinden al")
+            OutlinedTextField(key, { key = it; keyMsg = null }, label = { Text("Yeni anahtar (AIza…)") }, singleLine = true,
+                visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+            keyMsg?.let { Text(it, color = if (it.startsWith("✓")) Brand.Success else MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(top = 6.dp)) }
             Spacer(Modifier.height(10.dp))
-            Button(onClick = {
-                val cfg = SetupCode.parse(code)
-                if (cfg == null) codeMsg = "Kod geçersiz. Telegram'daki /uygulama mesajını tam kopyala."
-                else { vm.prefs.server = cfg; code = ""; codeMsg = "✓ Kaydedildi"; BridgeService.stop(ctx); BridgeService.start(ctx); vm.refreshAll() }
-            }, modifier = Modifier.fillMaxWidth()) { Text("Kaydet ve bağlan") }
+            Button(onClick = { scope.launch { val e = vm.saveAndTestKey(key.trim()); keyMsg = e ?: "✓ Anahtar çalışıyor"; if (e == null) key = "" } },
+                enabled = key.trim().length >= 20, modifier = Modifier.fillMaxWidth()) { Text("Kaydet ve dene") }
         }
 
-        SectionTitle("Telefon köprüsü")
+        SectionTitle("Bütçe")
         YaiCard {
-            ListRow(Icons.Rounded.PhoneAndroid, Brand.Cyan, "YAi bu telefonu kullanabilsin",
-                when (bridge) { BridgeService.State.ONLINE -> "Bağlı ✓"; BridgeService.State.CONNECTING -> "Bağlanıyor…"
-                    BridgeService.State.ERROR -> "Bağlantı yok: $bridgeDetail"; else -> "Kapalı" }) {
-                Switch(bridgeOn, { bridgeOn = it; vm.prefs.bridgeEnabled = it
-                    if (it) BridgeService.start(ctx) else BridgeService.stop(ctx) },
-                    colors = SwitchDefaults.colors(checkedTrackColor = Brand.Violet))
+            Text("Harcama bu sınırlara gelince YAi ucuz modele geçer veya durur.", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(monthly, { monthly = it; it.replace(',', '.').toFloatOrNull()?.let { v -> vm.prefs.monthlyLimit = v } },
+                label = { Text("Aylık limit (\$)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(daily, { daily = it; it.replace(',', '.').toFloatOrNull()?.let { v -> vm.prefs.dailyLimit = v } },
+                label = { Text("Günlük akıllı model limiti (\$)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        }
+
+        SectionTitle("Telefon")
+        YaiCard {
+            ListRow(Icons.Rounded.PhoneAndroid, Brand.Cyan, "YAi telefonu kullanabilsin", "SMS, arama, alarm, ekran kontrolü…") {
+                Switch(phoneOn, { phoneOn = it; vm.prefs.phoneEnabled = it }, colors = SwitchDefaults.colors(checkedTrackColor = Brand.Violet))
             }
-            OutlinedTextField(device, { device = it; vm.prefs.deviceName = it }, label = { Text("Cihaz adı") },
-                singleLine = true, modifier = Modifier.fillMaxWidth())
+            TextButton(onClick = { vm.clearChat() }) { Text("Sohbet geçmişini temizle") }
         }
 
         SectionTitle("İzinler")
@@ -135,7 +140,7 @@ fun SettingsScreen(vm: MainViewModel, back: () -> Unit) {
             val overlay = Settings.canDrawOverlays(ctx)
             val battery = ctx.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(ctx.packageName)
             YaiCard {
-                Perm(Icons.Rounded.Key, "Telefon izinleri", "SMS, arama, rehber, konum, kamera, mikrofon ($runtimeOk/${RUNTIME_PERMISSIONS.size})",
+                Perm(Icons.Rounded.Key, "Telefon izinleri", "SMS, arama, rehber, konum, kamera, mikrofon, takvim ($runtimeOk/${RUNTIME_PERMISSIONS.size})",
                     runtimeOk == RUNTIME_PERMISSIONS.size) { permLauncher.launch(RUNTIME_PERMISSIONS) }
                 Perm(Icons.Rounded.Security, "Kısıtlı ayarlara izin ver", "Uygulama bilgisi → ⋮ → Kısıtlı ayarlara izin ver (Android 13+)",
                     a11y && notif) { open(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + ctx.packageName))) }
@@ -145,25 +150,14 @@ fun SettingsScreen(vm: MainViewModel, back: () -> Unit) {
                     open(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
                 Perm(Icons.Rounded.Layers, "Diğer uygulamaların üzerinde göster", "Uygulama/alarm açabilmesi için", overlay) {
                     open(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ctx.packageName))) }
-                Perm(Icons.Rounded.BatterySaver, "Pil kısıtlamasını kaldır", "7/24 bağlı kalması için", battery) {
+                val exact = Build.VERSION.SDK_INT < 31 || ctx.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
+                Perm(Icons.Rounded.Tune, "Tam zamanlı alarmlar", "Görevlerin dakikası dakikasına çalışması için", exact) {
+                    open(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + ctx.packageName))) }
+                Perm(Icons.Rounded.BatterySaver, "Pil kısıtlamasını kaldır", "Görevlerin zamanında çalışması için", battery) {
                     open(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + ctx.packageName))) }
             }
         }
 
-        SectionTitle("YAi davranışı")
-        YaiCard {
-            val s = settings
-            if (s == null) Text("Sunucuya bağlanınca görünür.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            else listOf(
-                "phone_enabled" to "Telefon erişimi", "phone_forward_notifications" to "Bildirimleri Telegram'a ilet",
-                "proactive_email" to "Önemli e-posta uyarısı", "proactive_calendar" to "Toplantı hatırlatma",
-                "voice_replies" to "Telegram'da sesli cevap",
-            ).forEach { (k, label) ->
-                ListRow(Icons.Rounded.Tune, Brand.Indigo, label) {
-                    Switch(s.optBoolean(k), { vm.setSetting(k, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Brand.Violet))
-                }
-            }
-        }
         Spacer(Modifier.height(16.dp))
         Text("YAi ${runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: ""}",
             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -11,8 +11,8 @@ android {
         applicationId = "dev.yai.app"
         minSdk = 30          // Android 11+: erişilebilirlik ekran görüntüsü ve hareketler için
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "2.0.0"
     }
 
     signingConfigs {
@@ -80,5 +80,7 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.18")
     testImplementation("androidx.test.ext:junit:1.3.0")
     testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("com.squareup.okhttp3:mockwebserver3:5.5.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

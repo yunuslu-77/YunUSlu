@@ -52,13 +52,12 @@ import org.json.JSONObject
 fun BrainScreen(vm: MainViewModel) {
     var tab by remember { mutableIntStateOf(0) }
     val memories by vm.memories.collectAsState()
-    val agents by vm.agents.collectAsState()
     val skills by vm.skills.collectAsState()
     val pages by vm.pages.collectAsState()
     var addMem by remember { mutableStateOf(false) }
     var openPage by remember { mutableStateOf<JSONObject?>(null) }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(Unit) { vm.refreshBrain() }
+    LaunchedEffect(Unit) { vm.refreshAll() }
 
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
         Text("Beyin", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 4.dp))
@@ -66,7 +65,7 @@ fun BrainScreen(vm: MainViewModel) {
             modifier = Modifier.padding(horizontal = 16.dp))
         Spacer(Modifier.height(8.dp))
         SecondaryTabRow(selectedTabIndex = tab) {
-            listOf("Hafıza", "Ajanlar", "Beceriler", "Sayfalar").forEachIndexed { i, t ->
+            listOf("Hafıza", "Beceriler", "Sayfalar").forEachIndexed { i, t ->
                 Tab(tab == i, { tab = i }, text = { Text(t) })
             }
         }
@@ -83,15 +82,7 @@ fun BrainScreen(vm: MainViewModel) {
                             IconButton(onClick = { vm.deleteMemory(m.optInt("id")) }) { Icon(Icons.Rounded.DeleteOutline, "Sil") } } }
                     }
                 }
-                1 -> items(agents, key = { it.optString("name") }) { a ->
-                    val active = a.optBoolean("active")
-                    YaiCard { ListRow(Icons.Rounded.Groups, if (active) Brand.Success else Brand.Cyan, a.optString("name"),
-                        a.optString("role") + if (a.optString("tier") == "smart") " · akıllı model" else "") {
-                        if (active) Icon(Icons.Rounded.CheckCircle, "Aktif", tint = Brand.Success)
-                        else TextButton(onClick = { vm.setAgent(a.optString("name")) }) { Text("Seç") }
-                    } }
-                }
-                2 -> {
+                1 -> {
                     if (skills.isEmpty()) item { EmptyState(Icons.Rounded.Lightbulb, "Henüz beceri yok",
                         "YAi sık yaptığın işleri fark edince beceri olarak kaydetmeyi önerir.") }
                     items(skills, key = { it.optString("name") }) { s ->
@@ -104,7 +95,7 @@ fun BrainScreen(vm: MainViewModel) {
                     if (pages.isEmpty()) item { EmptyState(Icons.AutoMirrored.Rounded.Article, "Sayfa yok", "\"Bunu rapor olarak kaydet\" de.") }
                     items(pages, key = { it.optInt("id") }) { p ->
                         YaiCard { ListRow(Icons.AutoMirrored.Rounded.Article, Brand.Indigo, p.optString("title")) {
-                            TextButton(onClick = { scope.launch { openPage = runCatching { vm.page(p.optInt("id")) }.getOrNull() } }) { Text("Aç") }
+                            TextButton(onClick = { openPage = vm.page(p.optInt("id")) }) { Text("Aç") }
                         } }
                     }
                 }

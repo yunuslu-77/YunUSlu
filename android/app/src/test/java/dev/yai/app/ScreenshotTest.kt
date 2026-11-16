@@ -13,7 +13,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dev.yai.app.data.SetupCode
 import dev.yai.app.ui.ChatMsg
 import dev.yai.app.ui.MainViewModel
 import dev.yai.app.ui.screens.BrainScreen
@@ -44,8 +43,8 @@ class ScreenshotTest {
 
     private fun vm(): MainViewModel {
         val vm = MainViewModel(ApplicationProvider.getApplicationContext())
-        vm.status.value = JSONObject("""{"bot_name":"YAi","google":true,"spent_today":0.042,"spent_month":2.37,
-            "monthly_limit":9,"pending_approvals":1,"schedules":3,"memories":12}""")
+        vm.status.value = JSONObject("""{"bot_name":"YAi","key":true,"spent_today":0.042,"spent_month":2.37,
+            "monthly_limit":9,"schedules":3,"memories":12}""")
         vm.approvals.value = listOf(JSONObject("""{"id":7,"summary":"📧 E-posta gönder\nKime: ali@ornek.com\nKonu: Yarınki toplantı"}"""))
         vm.schedules.value = listOf(
             JSONObject("""{"id":1,"kind":"prompt","payload":"Sabah brifingi hazırla","when":"tekrar: hafta içi 08:00","next_run":1763445600}"""),
@@ -68,7 +67,7 @@ class ScreenshotTest {
         File(dir, "$name.png").outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    @Test fun welcome() = shot("01_welcome") { WelcomeScreen {} }
+    @Test fun welcome() = shot("01_welcome") { WelcomeScreen({ null }) {} }
     @Test fun home() { val v = vm(); shot("02_home") { HomeScreen(v, {}, {}) } }
     @Test fun homeDark() { val v = vm(); shot("02_home_dark") { HomeScreen(v, {}, {}) } }
     @Test fun chat() { val v = vm(); shot("03_chat") { ChatScreen(v, null) {} } }
@@ -78,16 +77,6 @@ class ScreenshotTest {
     @Test fun learn() = shot("05_learn") { LearnScreen() }
     @Test fun brain() { val v = vm(); shot("06_brain") { BrainScreen(v) } }
     @Test fun settings() { val v = vm(); shot("07_settings") { SettingsScreen(v) {} } }
-
-    @Test fun setupCode() {
-        val raw = """{"u":"http://100.1.2.3:8080","t":"tok","p":"ptok"}"""
-        val code = "YAI1:" + android.util.Base64.encodeToString(raw.toByteArray(),
-            android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP)
-        val cfg = SetupCode.parse(code)!!
-        assertEquals("http://100.1.2.3:8080", cfg.url)
-        assertEquals("ws://100.1.2.3:8080/phone/ws", cfg.wsUrl)
-        assertNull(SetupCode.parse("yanlış"))
-    }
 
     @Test fun sensitiveApps() {
         val s = dev.yai.app.learn.Sensitive

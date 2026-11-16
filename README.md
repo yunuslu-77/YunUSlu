@@ -5,6 +5,27 @@
 OpenDots, Claude Duet ve Gemini Spark'ın özelliklerini bir araya getiren, **telefonunu da kontrol edebilen**,
 Google Gemini ile çalışan ve bulutta 7/24 açık duran kişisel asistan. Aylık **10 $** Google kredisine göre ayarlandı.
 
+## ⚡ En kolay kurulum: sadece APK (önerilen)
+
+1. **YAi.apk**'yı telefona kur.
+2. Uygulamayı aç ve **Gemini API anahtarını** yapıştır (aistudio.google.com/apikey). Hepsi bu kadar.
+3. İsteğe bağlı: **Ayarlar → İzinler** bölümünden kullanmak istediğin özelliklerin izinlerini aç (SMS, arama, takvim, ekran kontrolü…).
+
+Bu modda YAi'nin beyni tamamen **telefonun içinde** çalışır. Sunucu, kart, Termux ve Telegram gerekmez.
+Zamanlanmış görevler Android alarmlarıyla uygulama kapalıyken de çalışır, sonuç bildirim olarak gelir.
+Onay gereken işler için bildirimde **Onayla / İptal** butonları çıkar.
+
+| Özellik | Sadece APK | Sunucu modu (aşağıda) |
+|---|---|---|
+| Sohbet (yazı + ses), hafıza, notlar, beceriler | ✅ | ✅ |
+| Görevler, hatırlatıcılar, sabah brifingi | ✅ (bildirimle) | ✅ (Telegram'la) |
+| Telefon kontrolü, ekran kontrolü, öğrenme modu | ✅ | ✅ |
+| Web araması, hava durumu, sayfa okuma | ✅ | ✅ |
+| Takvim | ✅ (telefonun Google Takvim'i) | ✅ |
+| Gmail okuma/gönderme | Bildirimlerden okur | ✅ tam erişim |
+| Telegram'dan konuşma | — | ✅ |
+| Botun kendi tarayıcısı | — | ✅ |
+
 ## ✨ Özellikler
 
 | Özellik | Nasıl kullanılır |

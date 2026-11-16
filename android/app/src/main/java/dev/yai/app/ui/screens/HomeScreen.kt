@@ -46,7 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.yai.app.bridge.BridgeService
+import dev.yai.app.bridge.YaiAccessibilityService
+import dev.yai.app.YaiApp
 import dev.yai.app.ui.MainViewModel
 import dev.yai.app.ui.components.IconBadge
 import dev.yai.app.ui.components.SectionTitle
@@ -61,7 +62,9 @@ import java.util.Locale
 fun HomeScreen(vm: MainViewModel, openSettings: () -> Unit, openChatWith: (String) -> Unit) {
     val status by vm.status.collectAsState()
     val approvals by vm.approvals.collectAsState()
-    val bridge by BridgeService.state.collectAsState()
+    val a11y = YaiAccessibilityService.instance != null
+    val notifAccess = dev.yai.app.bridge.YaiNotificationListener.instance != null
+    val learned = YaiApp.instance.learning.stats().count { it.screens > 0 }
     val name = status?.optString("bot_name")?.ifBlank { null } ?: "YAi"
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -74,7 +77,7 @@ fun HomeScreen(vm: MainViewModel, openSettings: () -> Unit, openChatWith: (Strin
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(name, color = Color.White, style = MaterialTheme.typography.titleLarge)
-                        Text("Kişisel yapay zekâ ajanın", color = Color.White.copy(alpha = 0.8f),
+                        Text("Telefonundaki yapay zekâ asistanı", color = Color.White.copy(alpha = 0.8f),
                             style = MaterialTheme.typography.labelMedium)
                     }
                     IconButton(onClick = { vm.refreshAll() }) { Icon(Icons.Rounded.Refresh, "Yenile", tint = Color.White) }
@@ -86,9 +89,9 @@ fun HomeScreen(vm: MainViewModel, openSettings: () -> Unit, openChatWith: (Strin
                 Text("Bugün senin için ne yapayım?", color = Color.White.copy(alpha = 0.85f))
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Chip("Sunucu", status != null)
-                    Chip("Telefon", bridge == BridgeService.State.ONLINE)
-                    Chip("Google", status?.optBoolean("google") == true)
+                    Chip("Gemini", status?.optBoolean("key") == true)
+                    Chip("Ekran", a11y)
+                    Chip("Bildirim", notifAccess)
                 }
             }
         }
@@ -98,9 +101,9 @@ fun HomeScreen(vm: MainViewModel, openSettings: () -> Unit, openChatWith: (Strin
             SectionTitle("Hızlı işlemler")
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Quick(Icons.Rounded.WbSunny, "Brifing", Brand.Warning, Modifier.weight(1f)) {
-                    openChatWith("Bana şimdi kısa bir brifing hazırla: hava, takvim, önemli mailler.") }
-                Quick(Icons.Rounded.Mail, "Mailler", Brand.Violet, Modifier.weight(1f)) {
-                    openChatWith("Okunmamış önemli maillerimi özetle.") }
+                    openChatWith("Bana şimdi kısa bir brifing hazırla: hava durumu, bugünkü takvimim ve önemli bildirimler.") }
+                Quick(Icons.Rounded.Mail, "Bildirimler", Brand.Violet, Modifier.weight(1f)) {
+                    openChatWith("Telefonumdaki bildirimlerden önemli olanları (mesaj, mail) kısaca özetle.") }
                 Quick(Icons.Rounded.Search, "Telefonu bul", Brand.Cyan, Modifier.weight(1f)) {
                     openChatWith("Telefonumu bul.") }
             }
@@ -150,15 +153,12 @@ fun HomeScreen(vm: MainViewModel, openSettings: () -> Unit, openChatWith: (Strin
             }
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Tile(Icons.Rounded.PhoneAndroid, "Telefon", when (bridge) {
-                    BridgeService.State.ONLINE -> "Bağlı"; BridgeService.State.CONNECTING -> "Bağlanıyor"
-                    BridgeService.State.ERROR -> "Bağlantı yok"; else -> "Kapalı" }, Brand.Cyan, Modifier.weight(1f))
+                Tile(Icons.Rounded.PhoneAndroid, "Ekran kontrolü", if (a11y) "Açık" else "Kapalı", Brand.Cyan, Modifier.weight(1f))
                 Tile(Icons.Rounded.Alarm, "Görevler", "${status?.optInt("schedules") ?: 0} kurulu", Brand.Warning, Modifier.weight(1f))
             }
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Tile(Icons.Rounded.Cloud, "Google", if (status?.optBoolean("google") == true) "Bağlı" else "Bağlı değil",
-                    Brand.Indigo, Modifier.weight(1f))
+                Tile(Icons.Rounded.Cloud, "Öğrenilen", "$learned uygulama", Brand.Indigo, Modifier.weight(1f))
                 Tile(Icons.Rounded.CheckCircle, "Hafıza", "${status?.optInt("memories") ?: 0} bilgi", Brand.Success, Modifier.weight(1f))
             }
             Spacer(Modifier.height(28.dp))

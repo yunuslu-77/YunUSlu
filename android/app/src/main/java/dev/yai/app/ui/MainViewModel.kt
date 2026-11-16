@@ -4,100 +4,100 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dev.yai.app.YaiApp
-import dev.yai.app.data.Api
-import dev.yai.app.data.objects
+import dev.yai.app.core.Gemini
+import dev.yai.app.core.TimeParse
+import dev.yai.app.core.WhenError
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 data class ChatMsg(val fromUser: Boolean, val text: String, val time: Long = System.currentTimeMillis())
 
+/** Arayüz durumu. Veriler doğrudan telefondaki YAi'den gelir (sunucu yok). */
 class MainViewModel(app: Application) : AndroidViewModel(app) {
-    val prefs = YaiApp.instance.prefs
-    val api = Api { prefs.server }
+    val yai = YaiApp.instance.yai
+    val prefs = yai.prefs
 
     val status = MutableStateFlow<JSONObject?>(null)
     val approvals = MutableStateFlow<List<JSONObject>>(emptyList())
     val schedules = MutableStateFlow<List<JSONObject>>(emptyList())
     val memories = MutableStateFlow<List<JSONObject>>(emptyList())
-    val agents = MutableStateFlow<List<JSONObject>>(emptyList())
     val skills = MutableStateFlow<List<JSONObject>>(emptyList())
     val pages = MutableStateFlow<List<JSONObject>>(emptyList())
-    val settings = MutableStateFlow<JSONObject?>(null)
-    val costs = MutableStateFlow<JSONObject?>(null)
     val chat = MutableStateFlow<List<ChatMsg>>(emptyList())
     val thinking = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
-    val refreshing = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch { yai.changes.collect { refreshAll() } }
+    }
 
     fun clearError() { _error.value = null }
 
-    private fun io(block: suspend () -> Unit) = viewModelScope.launch {
-        try { block() } catch (e: Exception) { _error.value = e.message ?: "Hata" }
+    fun refreshAll() {
+        val db = yai.db
+        status.value = JSONObject().put("bot_name", "YAi").put("key", prefs.hasKey)
+            .put("spent_month", yai.budget.month_()).put("spent_today", yai.budget.today())
+            .put("monthly_limit", prefs.monthlyLimit.toDouble())
+            .put("schedules", db.schedules().size).put("memories", db.memories().size)
+        approvals.value = db.pendingApprovals().map { JSONObject().put("id", it.id).put("summary", it.summary) }
+        schedules.value = db.schedules().map { JSONObject().put("id", it.id).put("kind", it.kind).put("payload", it.payload)
+            .put("when", TimeParse.describe(it.spec)).put("next_run", it.nextRun / 1000.0) }
+        memories.value = db.memories().map { JSONObject().put("id", it.id).put("fact", it.fact) }
+        skills.value = db.skills().let { s -> (0 until s.length()).map { s.getJSONObject(it) } }
+        pages.value = db.pages().map { JSONObject().put("id", it.id).put("title", it.title) }
+        chat.value = db.recentMessages(80).map { ChatMsg(it.role == "user", it.text, it.ts) }
     }
 
-    fun refreshAll() = io {
-        refreshing.value = true
-        try {
-            status.value = api.status()
-            approvals.value = api.approvals().objects()
-            schedules.value = api.schedules().objects()
-            costs.value = api.costs()
-            settings.value = api.settings()
-        } finally { refreshing.value = false }
-    }
-
-    fun refreshBrain() = io {
-        memories.value = api.memories().objects()
-        agents.value = api.agents().objects()
-        skills.value = api.skills().objects()
-        pages.value = api.pages().objects()
-    }
-
-    fun loadHistory() = io {
-        if (chat.value.isNotEmpty()) return@io
-        chat.value = api.history().objects().map { ChatMsg(it.optString("role") == "user", it.optString("text"),
-            (it.optDouble("ts", 0.0) * 1000).toLong()) }
-    }
-
-    fun send(text: String, onReply: (String) -> Unit = {}) {
+    fun send(text: String, image: Pair<ByteArray, String>? = null, onReply: (String) -> Unit = {}) {
         if (text.isBlank() || thinking.value) return
         chat.value = chat.value + ChatMsg(true, text)
         thinking.value = true
-        io {
-            try {
-                val reply = api.chat(text)
-                chat.value = chat.value + ChatMsg(false, reply)
-                onReply(reply)
-                approvals.value = api.approvals().objects()
-            } catch (e: Exception) {
-                chat.value = chat.value + ChatMsg(false, "⚠️ ${e.message}")
-            } finally { thinking.value = false }
+        viewModelScope.launch {
+            val reply = try {
+                withContext(Dispatchers.Default) { yai.agent.handleUser(text, image) }
+            } catch (e: Exception) { "⚠️ ${e.message}" }
+            thinking.value = false
+            refreshAll()
+            onReply(reply)
         }
     }
 
-    fun decide(id: Int, approve: Boolean) = io {
-        approvals.value = approvals.value.filter { it.optInt("id") != id }
-        val reply = api.decide(id, approve)
-        chat.value = chat.value + ChatMsg(false, reply)
-        status.value = api.status()
+    fun decide(id: Int, approve: Boolean) {
+        thinking.value = true
+        viewModelScope.launch {
+            try { withContext(Dispatchers.Default) { yai.agent.resolveApproval(id.toLong(), approve) } }
+            catch (e: Exception) { _error.value = e.message }
+            thinking.value = false
+            refreshAll()
+        }
     }
 
-    fun addSchedule(whenText: String, task: String, kind: String, done: (String?) -> Unit) = viewModelScope.launch {
+    fun addSchedule(whenText: String, task: String, kind: String, done: (String?) -> Unit) {
         try {
-            api.addSchedule(whenText, task, kind)
-            schedules.value = api.schedules().objects()
-            done(null)
+            if (task.isBlank()) throw WhenError("Görev metni boş")
+            yai.alarms.add(kind, task.trim(), TimeParse.parse(whenText))
+            refreshAll(); done(null)
         } catch (e: Exception) { done(e.message) }
     }
 
-    fun deleteSchedule(id: Int) = io { api.deleteSchedule(id); schedules.value = api.schedules().objects() }
-    fun addMemory(fact: String) = io { api.addMemory(fact); memories.value = api.memories().objects() }
-    fun deleteMemory(id: Int) = io { api.deleteMemory(id); memories.value = api.memories().objects() }
-    fun setAgent(name: String) = io { api.setAgent(name); agents.value = api.agents().objects() }
-    fun deleteSkill(name: String) = io { api.deleteSkill(name); skills.value = api.skills().objects() }
-    fun setSetting(key: String, value: Boolean) = io { settings.value = api.setSetting(key, value) }
-    suspend fun page(id: Int) = api.page(id)
+    fun deleteSchedule(id: Int) { yai.alarms.remove(id.toLong()); refreshAll() }
+    fun addMemory(fact: String) { yai.db.addMemory(fact); refreshAll() }
+    fun deleteMemory(id: Int) { yai.db.deleteMemory(id.toLong()); refreshAll() }
+    fun deleteSkill(name: String) { yai.db.deleteSkill(name); refreshAll() }
+    fun page(id: Int): JSONObject? = yai.db.page(id.toLong())?.let { JSONObject().put("title", it.title).put("content", it.content) }
+    fun clearChat() { yai.db.clearMessages(); refreshAll() }
+
+    /** Anahtarı kaydedip küçük bir istekle dener. */
+    suspend fun saveAndTestKey(key: String): String? {
+        prefs.apiKey = key
+        return try {
+            withContext(Dispatchers.IO) { (yai.llm as? Gemini)?.ping() }
+            null
+        } catch (e: Exception) { e.message ?: "Anahtar denenemedi" }
+    }
 }
